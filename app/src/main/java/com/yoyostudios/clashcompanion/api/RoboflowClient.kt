@@ -34,7 +34,7 @@ object RoboflowClient {
      *   - Nejc Zavodnik: "clash-royale-esvmi/1" (107 classes, 1300 images)
      *   - AngelFire: "clash-royale-cylln/1" (cards/HP bars, not troop positions)
      */
-    var modelId = "clash-royale-cylln/1"
+    var modelId = "clash-royale-esvmi/1"
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(5, TimeUnit.SECONDS)
