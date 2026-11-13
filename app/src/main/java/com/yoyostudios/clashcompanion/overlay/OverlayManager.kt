@@ -46,6 +46,7 @@ class OverlayManager(private val context: Context) {
     private var statusText: TextView? = null
     private var handText: TextView? = null
     private var autopilotText: TextView? = null
+    private var autopilotButton: Button? = null
     private var layoutParams: WindowManager.LayoutParams? = null
     private val handler = Handler(Looper.getMainLooper())
 
@@ -160,6 +161,24 @@ class OverlayManager(private val context: Context) {
             }
         }
         buttonRow.addView(btnListen)
+
+        // Direct touch toggle for AI Autopilot (no voice command required)
+        val btnAutopilot = Button(context).apply {
+            text = if (CommandRouter.isAutopilot) "STOP AI" else "START AI"
+            textSize = 11f
+            minWidth = 0; minimumWidth = 0
+            minHeight = 0; minimumHeight = 0
+            setPadding(16, 6, 16, 6)
+            setOnClickListener {
+                if (CommandRouter.isAutopilot) {
+                    CommandRouter.stopAutopilot()
+                } else {
+                    CommandRouter.startAutopilot()
+                }
+            }
+        }
+        autopilotButton = btnAutopilot
+        buttonRow.addView(btnAutopilot)
 
         // Minimize button
         val btnMinimize = Button(context).apply {
@@ -302,6 +321,7 @@ class OverlayManager(private val context: Context) {
             statusText = null
             handText = null
             autopilotText = null
+            autopilotButton = null
             layoutParams = null
             Log.i(TAG, "Overlay hidden")
         }
@@ -329,6 +349,7 @@ class OverlayManager(private val context: Context) {
      */
     fun setAutopilotActive(active: Boolean) {
         autopilotText?.visibility = if (active) View.VISIBLE else View.GONE
+        autopilotButton?.text = if (active) "STOP AI" else "START AI"
     }
 
     fun updateHandDisplay(hand: Map<Int, String>) {
