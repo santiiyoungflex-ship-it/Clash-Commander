@@ -34,24 +34,24 @@ jobs:
           packages: 'platform-tools'
 
       - name: Prepare API configuration
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           printf 'sdk.dir=%s\n' "$ANDROID_HOME" > local.properties
-          printf 'GEMINI_API_KEY=%s\n' "$GEMINI_API_KEY" >> local.properties
           printf 'ANTHROPIC_API_KEY=\nROBOFLOW_API_KEY=\n' >> local.properties
 
       - name: Download speech model assets
         run: bash scripts/bootstrap_sherpa_deps.sh
 
       - name: Build debug APK
-        run: ./gradlew --no-daemon assembleDebug
+        run: ./gradlew --no-daemon testDebugUnitTest assembleDebug
 
       - name: Verify APK and create checksum
         run: |
           APK="app/build/outputs/apk/debug/app-debug.apk"
           test -s "$APK"
           unzip -t "$APK"
+          BUILD_TOOLS="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n1)"
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -E "^(package:|sdkVersion:|targetSdkVersion:)"
           ls -lh "$APK"
           sha256sum "$APK" > app/build/outputs/apk/debug/SHA256SUMS.txt
 
