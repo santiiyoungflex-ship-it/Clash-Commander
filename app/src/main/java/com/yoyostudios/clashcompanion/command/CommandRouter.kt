@@ -447,21 +447,27 @@ $playbookSection
 $handSection
 $arenaSection$lastPlayedSection
 
-VALID ZONES: left_bridge, right_bridge, center, behind_left, behind_right, back_center, front_left, front_right
+VALID ZONES: left_bridge, right_bridge, center, behind_left, behind_right, back_center, front_left, front_right, opponent_left_tower, opponent_right_tower, opponent_king
 
 If an ARENA screenshot image is provided, use it as ground truth for threats and lane selection.
 Orientation: YOUR side is the BOTTOM of the screen. ENEMY side is the TOP.
 
 Rules:
-- ONLY suggest cards in CURRENT HAND.
-- When user says "defend" or "defense": ALWAYS play a defensive card immediately. Trust the user. Use ARENA STATE and/or the arena screenshot to find the most urgent enemy threat (closest to your towers) and choose the correct lane (left/right). If the threat is already on your side or about to cross, place closer (front_left/front_right/center). If the threat is further away, you can place behind_left/behind_right for a stronger counterpush. Buildings (if in deck) prefer center to pull. Troops MAY also be placed at center when needed to pull (e.g., Hog Rider).
-- When user says "push left" or "push right": play an offensive card at that bridge. Prefer win condition (Giant), then support troops (Musketeer, Archers), then cycle cards.
-- When user says "follow up": support LAST PLAYED card in the SAME LANE. Use playbook synergies (e.g. Giant + Musketeer, Giant + Archers). If last played was at left, play support at left. Never cross lanes for follow-up.
-- When user says "suggest" or gives a vague command: pick the best offensive play from current hand.
-- For ambiguous commands: safest positive-elixir-trade play.
-- Buildings go in "center" or "behind_left"/"behind_right".
-- NEVER return "wait" unless user explicitly asks to wait. Always play a card.
-
+- ONLY suggest cards in CURRENT HAND. If hand detection is uncertain, return wait.
+- THIS DECK IS LOG-BAIT / CONTROL: Princess, Prince, Goblin Barrel, The Log, Guards, Rocket, Bandit, Rascals. Primary win condition is Goblin Barrel.
+- GOBLIN BARREL: target an ENEMY PRINCESS TOWER only. Use opponent_left_tower or opponent_right_tower, never center, bridge, back, or a friendly-side zone. Choose the weaker tower only if its HP is visibly known; otherwise choose the lane with less defensive pressure. Do not throw into a ready hard counter unless baited or a favorable prediction is justified.
+- PRINCESS: deploy safely on your side in back_center / behind_left / behind_right; bridge pressure only when justified.
+- PRINCE and BANDIT: counterpush or punish after opponent spends elixir; choose a safe lane-specific bridge placement, not random center.
+- GUARDS: reserve for high-value ground threats and single-target defenders; place near the threat on your side.
+- RASCALS: use as defensive anchor or split-lane pressure; choose placement based on lane pressure.
+- THE LOG: target a visible line of enemy ground troops or a Goblin Barrel landing area; if target position is unclear, wait.
+- ROCKET: use for grouped high-value troops/buildings or a justified tower finish; never waste it on a lone low-value troop.
+- DEFENSE: identify enemy troop/building, lane, direction, and urgency from screenshot/detections. Choose the best available counter from THIS deck based on target type and elixir trade. Place on your side to pull, surround, or intercept. If enemy card or position cannot be identified confidently, wait.
+- Track opponent counters to Goblin Barrel (Log, Arrows, Barbarian Barrel, Snowball) only after visibly observing them; bait them with Princess/Bandit/Rascals before the next Barrel.
+- Manage elixir conservatively. Do not force a card every cycle. Prefer positive or strategically justified trades; wait when no safe play exists.
+- Never invent unseen enemy cards, tower HP, elixir, or damage.
+- Buildings go in center only if actually present in the deck.
+- For follow-up, preserve lane coherence only when the lane remains safe.
 Respond ONLY with JSON: {"action":"play","card":"<exact card name>","zone":"<zone_key>","reasoning":"<15 words max>"}
 Or ONLY if user says wait: {"action":"wait","reasoning":"<15 words max>"}"""
     }
@@ -596,11 +602,11 @@ Or ONLY if user says wait: {"action":"wait","reasoning":"<15 words max>"}"""
 
                     val result = withContext(Dispatchers.IO) {
                         val systemPrompt = buildSmartPrompt()
-                        val userText = "AUTOPILOT: You MUST play a card NOW from your current hand. " +
-                                "Never return wait — always play something. " +
-                                "Use ARENA STATE and/or the arena screenshot to defend correctly. " +
-                                "Prioritize: 1) Counter enemy threats. 2) Build pushes with synergies from the playbook. " +
-                                "3) Cycle cheap cards (Knight, Archers) when no clear play. Always place cards — never idle."
+                        val userText = "AUTOPILOT: Evaluate the current screenshot and detections before acting. " +
+                                "Play only when a safe, tactically justified move exists; return wait otherwise. " +
+                                "Use this deck-specific Log-bait strategy: Goblin Barrel targets an enemy Princess Tower only; " +
+                                "defend the highest-priority threat with the best available counter; track observed Barrel counters; " +
+                                "avoid wasting Rocket and avoid random placements. Never invent unseen enemy cards or tower HP."
 
                         val arenaImg = captureArenaImageBase64()
                         if (arenaImg != null) {
