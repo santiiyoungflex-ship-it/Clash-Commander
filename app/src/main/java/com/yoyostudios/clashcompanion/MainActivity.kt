@@ -103,8 +103,18 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        // Load saved deck
-        if (DeckManager.loadSavedDeck(this)) {
+        // Restore the saved deck, or seed the user's established Log Bait deck
+        // on a fresh install so Autopilot never starts with an unrelated placeholder deck.
+        if (!DeckManager.loadSavedDeck(this)) {
+            val defaultDeck = DeckManager.parseDeckParam(
+                "26000026;26000016;28000004;28000011;26000025;28000003;26000046;26000053"
+            )
+            if (defaultDeck?.size == 8) {
+                DeckManager.setDeck(defaultDeck, this)
+                Log.i(TAG, "DECK: Applied first-launch Log Bait deck")
+            }
+        }
+        if (DeckManager.currentDeck.isNotEmpty()) {
             deckCards.value = DeckManager.currentDeck
             updateDeckModelWarning(DeckManager.currentDeck)
             OpusCoach.loadSavedPlaybook(this)
