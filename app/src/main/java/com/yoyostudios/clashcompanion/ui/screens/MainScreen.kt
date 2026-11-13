@@ -71,6 +71,7 @@ fun MainScreen(activity: MainActivity) {
     val opusStatus by activity.opusStatus
     val opusComplete by activity.opusComplete
     val geminiKeyConfigured by activity.geminiKeyConfigured
+    val roboflowKeyConfigured by activity.roboflowKeyConfigured
 
     val allReady = overlayOk && accessibilityOk && captureOk
 
@@ -213,6 +214,14 @@ fun MainScreen(activity: MainActivity) {
                 configured = geminiKeyConfigured,
                 onSave = activity::saveGeminiApiKey,
                 onGetKey = activity::openGeminiApiKeyPage
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            RoboflowKeyCard(
+                configured = roboflowKeyConfigured,
+                onSave = activity::saveRoboflowApiKey,
+                onGetKey = activity::openRoboflowApiKeyPage
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -510,6 +519,52 @@ private fun CardTile(card: DeckManager.CardInfo, modifier: Modifier = Modifier) 
             fontSize = 9.sp,
             modifier = Modifier.fillMaxWidth()
         )
+    }
+}
+
+@Composable
+private fun RoboflowKeyCard(
+    configured: Boolean,
+    onSave: (String) -> Unit,
+    onGetKey: () -> Unit
+) {
+    var key by rememberSaveable { mutableStateOf("") }
+    CrCard(modifier = Modifier.fillMaxWidth(), contentPadding = 16.dp) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("Arena vision (Roboflow)", style = CrTypography.titleMedium, color = CrColors.TextGold)
+            Text(
+                if (configured) "Roboflow key saved securely on this phone. The arena detector is configured."
+                else "Add a free Roboflow API key to enable live Clash Royale troop detection.",
+                style = CrTypography.bodyMedium,
+                color = CrColors.TextSecondary
+            )
+            OutlinedTextField(
+                value = key,
+                onValueChange = { key = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Roboflow API key") },
+                placeholder = { Text("Paste your key here") },
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation()
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = { onSave(key.trim()); key = "" },
+                    enabled = key.trim().length >= 12,
+                    modifier = Modifier.weight(1f)
+                ) { Text("SAVE KEY") }
+                TextButton(onClick = onGetKey) { Text("GET KEY") }
+            }
+            Text(
+                "The detector sends cropped arena frames to Roboflow's hosted model. Your key is encrypted with Android Keystore.",
+                style = CrTypography.labelSmall,
+                color = CrColors.TextSecondary
+            )
+        }
     }
 }
 
