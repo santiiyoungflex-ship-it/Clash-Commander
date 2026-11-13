@@ -22,11 +22,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.HorizontalDivider\nimport androidx.compose.material3.OutlinedTextField\nimport androidx.compose.material3.Button\nimport androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Composable\nimport androidx.compose.runtime.rememberSaveable\nimport androidx.compose.runtime.mutableStateOf\nimport androidx.compose.runtime.getValue\nimport androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,7 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.input.PasswordVisualTransformation\nimport androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,7 +62,7 @@ fun MainScreen(activity: MainActivity) {
     val deck by activity.deckCards
     val deckModelWarning by activity.deckModelWarning
     val opusStatus by activity.opusStatus
-    val opusComplete by activity.opusComplete
+    val opusComplete by activity.opusComplete\n    val geminiKeyConfigured by activity.geminiKeyConfigured
 
     val allReady = overlayOk && accessibilityOk && micOk && captureOk && speechReady
 
@@ -189,6 +189,15 @@ fun MainScreen(activity: MainActivity) {
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // ── Secure Gemini API setup ──
+            GeminiKeyCard(
+                configured = geminiKeyConfigured,
+                onSave = activity::saveGeminiApiKey,
+                onGetKey = activity::openGeminiApiKeyPage
+            )
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -487,3 +496,67 @@ private fun CardTile(card: DeckManager.CardInfo, modifier: Modifier = Modifier) 
         )
     }
 }
+
+@Composable
+private fun GeminiKeyCard(
+    configured: Boolean,
+    onSave: (String) -> Unit,
+    onGetKey: () -> Unit
+) {
+    var key by rememberSaveable { mutableStateOf("") }
+    CrCard(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = 16.dp
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                text = "AI connection",
+                style = CrTypography.titleMedium,
+                color = CrColors.TextGold
+            )
+            Text(
+                text = if (configured) {
+                    "Gemini key saved securely on this phone."
+                } else {
+                    "Add a Gemini API key to enable live arena analysis and Autopilot."
+                },
+                style = CrTypography.bodyMedium,
+                color = CrColors.TextSecondary
+            )
+            OutlinedTextField(
+                value = key,
+                onValueChange = { key = it },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Gemini API key") },
+                placeholder = { Text("Paste your key here") },
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation()
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = {
+                        onSave(key.trim())
+                        key = ""
+                    },
+                    enabled = key.trim().length >= 20,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("SAVE KEY")
+                }
+                TextButton(onClick = onGetKey) {
+                    Text("GET KEY")
+                }
+            }
+            Text(
+                text = "The key is encrypted with Android Keystore and stays on this device.",
+                style = CrTypography.labelSmall,
+                color = CrColors.TextSecondary
+            )
+        }
+    }
+}
+
