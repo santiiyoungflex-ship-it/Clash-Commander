@@ -576,22 +576,16 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
      * Voice commands still work during autopilot (Fast Path overrides).
      */
     fun startAutopilot() {
-        // Fail closed: the autopilot must not act from Gemini's interpretation
-        // of a screenshot alone. Require an active arena detector as well.
-        // This prevents blind play in builds where Roboflow/local vision is absent.
-        if (!ArenaDetector.isPolling) {
-            overlay?.updateStatus("Autopilot unavailable: arena detector is not running")
-            Log.w(TAG, "CMD: Autopilot skipped — no active arena detector")
+        // Fail closed: require a current screen-capture frame and a configured
+        // Gemini Vision key. Roboflow is optional; Gemini analyzes the live arena image.
+        if (!ScreenCaptureService.hasFreshFrame()) {
+            overlay?.updateStatus("Autopilot unavailable: live screen capture is not fresh")
+            Log.w(TAG, "CMD: Autopilot skipped — no fresh screen frame")
             return
         }
-        if (!RoboflowClient.hasFreshResult()) {
-            overlay?.updateStatus("Vision warming up or offline — wait for a fresh arena scan")
-            Log.w(TAG, "CMD: Autopilot skipped — no recent successful arena inference")
-            return
-        }
-        if (BuildConfig.GEMINI_API_KEY.isBlank()) {
-            overlay?.updateStatus("Autopilot needs API key — use 'knight left' etc.")
-            Log.w(TAG, "CMD: Autopilot skipped — no GEMINI_API_KEY")
+        if (!GeminiClient.isConfigured()) {
+            overlay?.updateStatus("Add your Gemini API key in the app to enable Autopilot")
+            Log.w(TAG, "CMD: Autopilot skipped — Gemini API key is not configured")
             return
         }
         if (isAutopilot) {
@@ -648,11 +642,11 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
                         "${threat.get("card")?.asString ?: "unknown"}:${threat.get("lane")?.asString ?: "?"}"
                     } ?: "none/uncertain"
 
-                    // Re-check after the potentially slow Gemini request. A stale or failed
-                    // Roboflow frame must never authorize a card play.
-                    if (!RoboflowClient.hasFreshResult()) {
+                    // Re-check screen capture after the potentially slow Gemini request.
+                    // Never execute a decision if live capture has stopped or gone stale.
+                    if (!ScreenCaptureService.hasFreshFrame()) {
                         withContext(Dispatchers.Main) {
-                            overlay?.updateStatus("AUTO: Arena vision stale/offline — stopping safely")
+                            overlay?.updateStatus("AUTO: Live screen capture stale — stopping safely")
                         }
                         isBusy = false
                         stopAutopilot()
