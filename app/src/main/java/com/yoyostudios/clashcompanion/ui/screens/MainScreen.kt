@@ -72,7 +72,7 @@ fun MainScreen(activity: MainActivity) {
     val opusComplete by activity.opusComplete
     val geminiKeyConfigured by activity.geminiKeyConfigured
 
-    val allReady = overlayOk && accessibilityOk && micOk && captureOk && speechReady
+    val allReady = overlayOk && accessibilityOk && captureOk
 
     Box(
         modifier = Modifier
@@ -176,7 +176,7 @@ fun MainScreen(activity: MainActivity) {
                     ChecklistDivider()
                     ChecklistRow(
                         step = 4,
-                        name = "Microphone",
+                        name = "Microphone (optional)",
                         ready = micOk,
                         onClick = { activity.requestMicPermission() }
                     )
@@ -190,13 +190,21 @@ fun MainScreen(activity: MainActivity) {
                     ChecklistDivider()
                     ChecklistRow(
                         step = 6,
-                        name = "Voice Engine",
+                        name = "Voice Engine (optional)",
                         ready = speechReady,
                         loading = speechLoading,
                         onClick = { activity.startSpeechService() }
                     )
                 }
             }
+
+            Text(
+                text = "Voice is optional. Use START AI / STOP AI on the overlay without speaking.",
+                style = CrTypography.labelSmall,
+                color = CrColors.TextSecondary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+            )
 
             Spacer(modifier = Modifier.height(20.dp))
 
