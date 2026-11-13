@@ -2,8 +2,8 @@ package com.yoyostudios.clashcompanion.api
 
 import android.util.Log
 import com.google.gson.JsonParser
-import com.yoyostudios.clashcompanion.BuildConfig
 import com.yoyostudios.clashcompanion.detection.ArenaDetector
+import com.yoyostudios.clashcompanion.api.ApiKeyStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -34,7 +34,7 @@ object RoboflowClient {
      *   - Nejc Zavodnik: "clash-royale-esvmi/1" (107 classes, 1300 images)
      *   - AngelFire: "clash-royale-cylln/1" (cards/HP bars, not troop positions)
      */
-    var modelId = "clash-royale-esvmi/1"
+    var modelId = "clash-royale-cylln-88wu8-yeqpq/1"
 
     /** Timestamp of the last valid HTTP 2xx inference response with a predictions array. */
     @Volatile
@@ -71,9 +71,9 @@ object RoboflowClient {
         imageBase64: String,
         confidence: Float = 0.4f
     ): List<ArenaDetector.Detection> = withContext(Dispatchers.IO) {
-        val apiKey = BuildConfig.ROBOFLOW_API_KEY
+        val apiKey = ApiKeyStore.getRoboflowKey()
         if (apiKey.isBlank()) {
-            Log.w(TAG, "ROBOFLOW: API key not set")
+            Log.w(TAG, "ROBOFLOW: API key not configured on this device")
             return@withContext emptyList()
         }
 
