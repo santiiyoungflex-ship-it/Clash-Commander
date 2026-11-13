@@ -23,7 +23,6 @@ android {
         versionName = "1.0"
 
         buildConfigField("String", "ANTHROPIC_API_KEY", "\"${localProps.getProperty("ANTHROPIC_API_KEY", "")}\"")
-        buildConfigField("String", "GEMINI_API_KEY", "\"${localProps.getProperty("GEMINI_API_KEY", "")}\"")
         buildConfigField("String", "ROBOFLOW_API_KEY", "\"${localProps.getProperty("ROBOFLOW_API_KEY", "")}\"")
     }
 
