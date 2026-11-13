@@ -180,6 +180,7 @@ object ArenaDetector {
         pollJob?.cancel()
         pollJob = null
         isPolling = false
+        RoboflowClient.resetFreshness()
         currentDetections = emptyList()
         currentTracks = emptyList()
         ArenaTracker.clear()
