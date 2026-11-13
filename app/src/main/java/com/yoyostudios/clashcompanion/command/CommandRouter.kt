@@ -8,6 +8,7 @@ import com.google.gson.JsonParser
 import com.yoyostudios.clashcompanion.accessibility.ClashCompanionAccessibilityService
 import com.yoyostudios.clashcompanion.BuildConfig
 import com.yoyostudios.clashcompanion.api.GeminiClient
+import com.yoyostudios.clashcompanion.api.RoboflowClient
 import com.yoyostudios.clashcompanion.capture.ScreenCaptureService
 import com.yoyostudios.clashcompanion.command.CommandParser.CommandTier
 import com.yoyostudios.clashcompanion.deck.DeckManager
@@ -583,6 +584,11 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
             Log.w(TAG, "CMD: Autopilot skipped — no active arena detector")
             return
         }
+        if (!RoboflowClient.hasFreshResult()) {
+            overlay?.updateStatus("Vision warming up or offline — wait for a fresh arena scan")
+            Log.w(TAG, "CMD: Autopilot skipped — no recent successful arena inference")
+            return
+        }
         if (BuildConfig.GEMINI_API_KEY.isBlank()) {
             overlay?.updateStatus("Autopilot needs API key — use 'knight left' etc.")
             Log.w(TAG, "CMD: Autopilot skipped — no GEMINI_API_KEY")
@@ -641,6 +647,17 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
                         val threat = item.asJsonObject
                         "${threat.get("card")?.asString ?: "unknown"}:${threat.get("lane")?.asString ?: "?"}"
                     } ?: "none/uncertain"
+
+                    // Re-check after the potentially slow Gemini request. A stale or failed
+                    // Roboflow frame must never authorize a card play.
+                    if (!RoboflowClient.hasFreshResult()) {
+                        withContext(Dispatchers.Main) {
+                            overlay?.updateStatus("AUTO: Arena vision stale/offline — stopping safely")
+                        }
+                        isBusy = false
+                        stopAutopilot()
+                        return@launch
+                    }
 
                     // Fail closed: do not execute a move when visual interpretation is uncertain.
                     if (sceneConfidence < 0.70f) {
