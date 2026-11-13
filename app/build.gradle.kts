@@ -16,11 +16,11 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.yoyostudios.clashcompanion"
+        applicationId = "com.yoyostudios.clashcommander"
         minSdk = 28
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "2.0"
 
         buildConfigField("String", "ANTHROPIC_API_KEY", "\"${localProps.getProperty("ANTHROPIC_API_KEY", "")}\"")
         buildConfigField("String", "ROBOFLOW_API_KEY", "\"${localProps.getProperty("ROBOFLOW_API_KEY", "")}\"")
