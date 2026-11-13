@@ -31,7 +31,7 @@
         tools:targetApi="36">
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.yoyostudios.clashcompanion.MainActivity"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>
@@ -57,19 +57,19 @@
 
         <!-- Speech Service for microphone + STT -->
         <service
-            android:name=".speech.SpeechService"
+            android:name="com.yoyostudios.clashcompanion.speech.SpeechService"
             android:foregroundServiceType="microphone"
             android:exported="false" />
 
         <!-- Screen Capture Service for MediaProjection -->
         <service
-            android:name=".capture.ScreenCaptureService"
+            android:name="com.yoyostudios.clashcompanion.capture.ScreenCaptureService"
             android:foregroundServiceType="mediaProjection"
             android:exported="false" />
 
         <!-- Accessibility Service for tap injection -->
         <service
-            android:name=".accessibility.ClashCompanionAccessibilityService"
+            android:name="com.yoyostudios.clashcompanion.accessibility.ClashCompanionAccessibilityService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:exported="false">
             <intent-filter>
