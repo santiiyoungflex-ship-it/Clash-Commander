@@ -37,7 +37,12 @@ object GeminiClient {
         .writeTimeout(15, TimeUnit.SECONDS)
         .build()
 
-    private val JSON_MEDIA_TYPE = "application/json".toMediaType()\n\n    private fun apiKey(): String = ApiKeyStore.getGeminiKey().ifBlank { BuildConfig.GEMINI_API_KEY.trim() }\n\n    fun isConfigured(): Boolean = apiKey().isNotBlank()
+    private val JSON_MEDIA_TYPE = "application/json".toMediaType()
+
+    private fun apiKey(): String =
+        ApiKeyStore.getGeminiKey().ifBlank { BuildConfig.GEMINI_API_KEY.trim() }
+
+    fun isConfigured(): Boolean = apiKey().isNotBlank()
 
     // ── Public API ──────────────────────────────────────────────────────
 
@@ -89,7 +94,7 @@ object GeminiClient {
         maxTokens: Int = 1024,
         jsonMode: Boolean = true
     ): String = withContext(Dispatchers.IO) {
-        val apiKey = BuildConfig.GEMINI_API_KEY
+        val apiKey = apiKey()
         if (apiKey.isBlank()) {
             throw IllegalStateException("GEMINI_API_KEY not set in local.properties")
         }
