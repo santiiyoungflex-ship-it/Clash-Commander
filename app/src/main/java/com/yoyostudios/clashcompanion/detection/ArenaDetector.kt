@@ -94,8 +94,11 @@ object ArenaDetector {
                 if (safeCopy == null) { delay(POLL_INTERVAL_MS); continue }
 
                 try {
-                    // Crop arena region (exclude card hand at bottom and top UI bar)
-                    val arenaCrop = cropArena(safeCopy)
+                    // Compute the scaled crop while the source bitmap is still valid.
+                    val arenaRoi = Coordinates.getArenaROI(safeCopy.width, safeCopy.height)
+                    val arenaCrop = arenaRoi?.let {
+                        Bitmap.createBitmap(safeCopy, it.x, it.y, it.w, it.h)
+                    }
                     safeCopy.recycle()
 
                     if (arenaCrop == null) {
@@ -114,7 +117,7 @@ object ArenaDetector {
 
                     // Roboflow coordinates are relative to the cropped bitmap.
                     // Translate Y back into full-frame coordinates using the scaled ROI.
-                    val roi = Coordinates.getArenaROI(safeCopy.width, safeCopy.height)
+                    val roi = arenaRoi
                     val newDetections = if (roi == null) emptyList() else roboDetections.map { d ->
                         Detection(
                             className = d.className,
@@ -126,19 +129,10 @@ object ArenaDetector {
                         )
                     }
 
-                    // Merge with previous detections: keep old ones that are still fresh
-                    val now = System.currentTimeMillis()
-                    val freshOld = currentDetections.filter {
-                        now - it.timestamp < DETECTION_MAX_AGE_MS &&
-                                newDetections.none { n ->
-                                    n.className == it.className &&
-                                            Math.abs(n.centerX - it.centerX) < 100 &&
-                                            Math.abs(n.centerY - it.centerY) < 100
-                                }
-                    }
-
-                    val merged = newDetections + freshOld
-                    currentDetections = merged
+                    // Never carry forward old boxes as if they were current positions.
+                    // Empty/failed frames must clear stale threats instead of steering a defense.
+                    currentDetections = newDetections
+                    val merged = newDetections
 
                     if (newDetections.isNotEmpty()) {
                         val summary = newDetections.joinToString(", ") {
