@@ -47,6 +47,11 @@ object RoboflowClient {
         return timestamp > 0L && System.currentTimeMillis() - timestamp <= maxAgeMs
     }
 
+    /** Clear freshness when arena polling stops or restarts. */
+    fun resetFreshness() {
+        lastSuccessfulInferenceAtMs = 0L
+    }
+
     private val client = OkHttpClient.Builder()
         .connectTimeout(5, TimeUnit.SECONDS)
         .readTimeout(5, TimeUnit.SECONDS)
