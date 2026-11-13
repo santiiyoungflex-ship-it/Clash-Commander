@@ -34,13 +34,16 @@ class ScreenCaptureService : Service() {
         var instance: ScreenCaptureService? = null
             private set
 
-        fun getLatestFrame(): Bitmap? = instance?.latestFrame?.get()\n\n        fun hasFreshFrame(maxAgeMs: Long = 1500L): Boolean {\n            val service = instance ?: return false\n            val timestamp = service.lastFrameAtMs\n            return timestamp > 0L && System.currentTimeMillis() - timestamp <= maxAgeMs\n        }
+        fun getLatestFrame(): Bitmap? = instance?.latestFrame?.get()
+
+        fun hasFreshFrame(maxAgeMs: Long = 1500L): Boolean {\n            val service = instance ?: return false\n            val timestamp = service.lastFrameAtMs\n            return timestamp > 0L && System.currentTimeMillis() - timestamp <= maxAgeMs\n        }
     }
 
     private var mediaProjection: MediaProjection? = null
     private var virtualDisplay: VirtualDisplay? = null
     private var imageReader: ImageReader? = null
-    private val latestFrame = AtomicReference<Bitmap?>(null)\n    @Volatile private var lastFrameAtMs: Long = 0L
+    private val latestFrame = AtomicReference<Bitmap?>(null)
+    @Volatile private var lastFrameAtMs: Long = 0L
 
     // Keep the previous frame alive for one extra capture cycle.
     // This prevents the bitmap recycling race where the HandDetector scanner
