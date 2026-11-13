@@ -34,7 +34,6 @@ import androidx.compose.runtime.rememberSaveable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.aspectRatio
@@ -70,7 +69,8 @@ fun MainScreen(activity: MainActivity) {
     val deck by activity.deckCards
     val deckModelWarning by activity.deckModelWarning
     val opusStatus by activity.opusStatus
-    val opusComplete by activity.opusComplete\n    val geminiKeyConfigured by activity.geminiKeyConfigured
+    val opusComplete by activity.opusComplete
+    val geminiKeyConfigured by activity.geminiKeyConfigured
 
     val allReady = overlayOk && accessibilityOk && micOk && captureOk && speechReady
 
