@@ -495,12 +495,8 @@ Or ONLY if user says wait: {"action":"wait","reasoning":"<15 words max>"}"""
         } ?: return null
 
         try {
-            val top = Coordinates.ARENA_CROP_TOP
-            val bottom = Coordinates.ARENA_CROP_BOTTOM
-            val height = bottom - top
-            if (top < 0 || height <= 0 || top + height > safeCopy.height) return null
-
-            val crop = Bitmap.createBitmap(safeCopy, 0, top, safeCopy.width, height)
+            val roi = Coordinates.getArenaROI(safeCopy.width, safeCopy.height) ?: return null
+            val crop = Bitmap.createBitmap(safeCopy, roi.x, roi.y, roi.w, roi.h)
 
             val targetW = VISION_ARENA_TARGET_W
             val targetH = (crop.height.toFloat() * (targetW.toFloat() / crop.width.toFloat())).toInt()
