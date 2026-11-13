@@ -575,6 +575,14 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
      * Voice commands still work during autopilot (Fast Path overrides).
      */
     fun startAutopilot() {
+        // Fail closed: the autopilot must not act from Gemini's interpretation
+        // of a screenshot alone. Require an active arena detector as well.
+        // This prevents blind play in builds where Roboflow/local vision is absent.
+        if (!ArenaDetector.isPolling) {
+            overlay?.updateStatus("Autopilot unavailable: arena detector is not running")
+            Log.w(TAG, "CMD: Autopilot skipped — no active arena detector")
+            return
+        }
         if (BuildConfig.GEMINI_API_KEY.isBlank()) {
             overlay?.updateStatus("Autopilot needs API key — use 'knight left' etc.")
             Log.w(TAG, "CMD: Autopilot skipped — no GEMINI_API_KEY")
