@@ -18,7 +18,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.yoyostudios.clashcompanion.capture.ScreenCaptureService\nimport com.yoyostudios.clashcompanion.api.ApiKeyStore\nimport com.yoyostudios.clashcompanion.api.GeminiClient
+import com.yoyostudios.clashcompanion.capture.ScreenCaptureService
+import com.yoyostudios.clashcompanion.api.ApiKeyStore
+import com.yoyostudios.clashcompanion.api.GeminiClient
 import com.yoyostudios.clashcompanion.deck.DeckManager
 import com.yoyostudios.clashcompanion.detection.CardClassifier
 import com.yoyostudios.clashcompanion.detection.HandDetector
@@ -60,7 +62,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        ApiKeyStore.initialize(applicationContext)\n        geminiKeyConfigured.value = GeminiClient.isConfigured()\n        Coordinates.init(this)
+        ApiKeyStore.initialize(applicationContext)
+        geminiKeyConfigured.value = GeminiClient.isConfigured()
+        Coordinates.init(this)
         DeckManager.loadCardDatabase(assets)
         CardClassifier.init(this)
 
