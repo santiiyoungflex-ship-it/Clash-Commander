@@ -560,7 +560,7 @@ private fun GeminiKeyCard(
                 }
             }
             Text(
-                text = "The key is encrypted with Android Keystore and stays on this device.",
+                text = "Your key is encrypted on this phone. Live arena screenshots are sent to Google Gemini for analysis.",
                 style = CrTypography.labelSmall,
                 color = CrColors.TextSecondary
             )
