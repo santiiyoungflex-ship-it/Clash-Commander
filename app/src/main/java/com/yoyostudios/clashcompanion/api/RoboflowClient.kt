@@ -36,6 +36,17 @@ object RoboflowClient {
      */
     var modelId = "clash-royale-esvmi/1"
 
+    /** Timestamp of the last valid HTTP 2xx inference response with a predictions array. */
+    @Volatile
+    var lastSuccessfulInferenceAtMs: Long = 0L
+        private set
+
+    /** True only while a real detector response has arrived recently. */
+    fun hasFreshResult(maxAgeMs: Long = 6000L): Boolean {
+        val timestamp = lastSuccessfulInferenceAtMs
+        return timestamp > 0L && System.currentTimeMillis() - timestamp <= maxAgeMs
+    }
+
     private val client = OkHttpClient.Builder()
         .connectTimeout(5, TimeUnit.SECONDS)
         .readTimeout(5, TimeUnit.SECONDS)
@@ -89,6 +100,8 @@ object RoboflowClient {
             // Parse: { predictions: [{ x, y, width, height, class, confidence }], image: { width, height } }
             val json = JsonParser.parseString(body).asJsonObject
             val predictions = json.getAsJsonArray("predictions") ?: return@withContext emptyList()
+            // An empty predictions array is still a valid fresh frame; HTTP/parse failures are not.
+            lastSuccessfulInferenceAtMs = System.currentTimeMillis()
 
             val detections = predictions.mapNotNull { elem ->
                 try {
