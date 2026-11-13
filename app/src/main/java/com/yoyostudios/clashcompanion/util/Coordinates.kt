@@ -99,6 +99,19 @@ object Coordinates {
     const val ARENA_CROP_TOP = 200
     const val ARENA_CROP_BOTTOM = 1900
 
+    /** Arena crop scaled to the actual captured frame dimensions. */
+    data class ArenaROI(val x: Int, val y: Int, val w: Int, val h: Int)
+
+    fun getArenaROI(frameW: Int, frameH: Int): ArenaROI? {
+        if (frameW <= 0 || frameH <= 0) return null
+        val sy = frameH / REF_H
+        val top = (ARENA_CROP_TOP * sy).toInt().coerceIn(0, frameH)
+        val bottom = (ARENA_CROP_BOTTOM * sy).toInt().coerceIn(0, frameH)
+        val height = bottom - top
+        if (height <= 0) return null
+        return ArenaROI(0, top, frameW, height)
+    }
+
     // ── Card Slot Centers (bottom of screen, 4 visible cards) ──
     // Centers calibrated from the 720x1600 Moto G13 match screenshot.
     // Scaled reference x positions: 335, 540, 745, 950 on a 1080px display.
