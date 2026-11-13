@@ -6,7 +6,6 @@ import android.util.Log
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import com.yoyostudios.clashcompanion.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -39,8 +38,7 @@ object GeminiClient {
 
     private val JSON_MEDIA_TYPE = "application/json".toMediaType()
 
-    private fun apiKey(): String =
-        ApiKeyStore.getGeminiKey().ifBlank { BuildConfig.GEMINI_API_KEY.trim() }
+    private fun apiKey(): String = ApiKeyStore.getGeminiKey()
 
     fun isConfigured(): Boolean = apiKey().isNotBlank()
 
