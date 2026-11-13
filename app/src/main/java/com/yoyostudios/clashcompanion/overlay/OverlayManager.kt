@@ -17,7 +17,7 @@ import android.view.WindowManager
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
-import com.yoyostudios.clashcompanion.BuildConfig
+import com.yoyostudios.clashcompanion.api.ApiKeyStore
 import com.yoyostudios.clashcompanion.accessibility.ClashCompanionAccessibilityService
 import com.yoyostudios.clashcompanion.capture.ScreenCaptureService
 import com.yoyostudios.clashcompanion.command.CommandRouter
@@ -235,7 +235,7 @@ class OverlayManager(private val context: Context) {
         }
 
         // Start arena detection if Roboflow API key is configured
-        if (BuildConfig.ROBOFLOW_API_KEY.isNotBlank() && !ArenaDetector.isPolling) {
+        if (ApiKeyStore.isRoboflowKeyConfigured() && !ArenaDetector.isPolling) {
             ArenaDetector.startPolling { detections ->
                 handler.post { CommandRouter.checkRules(detections) }
             }
