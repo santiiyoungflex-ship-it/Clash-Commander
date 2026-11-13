@@ -185,6 +185,10 @@ object Coordinates {
         // Top (same as front/opponent side)
         "top left" to OPP_LEFT_TOWER,
         "top right" to OPP_RIGHT_TOWER,
+        // Explicit enemy Princess Tower targets for deck-specific Barrel placement
+        "opponent_left_tower" to OPP_LEFT_TOWER,
+        "opponent_right_tower" to OPP_RIGHT_TOWER,
+        "opponent_king" to OPP_KING,
         // Opponent towers — "left tower" defaults to ENEMY (you'd never fireball your own)
         "left tower" to OPP_LEFT_TOWER,
         "right tower" to OPP_RIGHT_TOWER,
