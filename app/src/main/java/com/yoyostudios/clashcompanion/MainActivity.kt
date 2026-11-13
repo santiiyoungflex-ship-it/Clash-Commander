@@ -53,7 +53,8 @@ class MainActivity : ComponentActivity() {
     val deckCards = mutableStateOf<List<DeckManager.CardInfo>>(emptyList())
     val deckModelWarning = mutableStateOf<String?>(null)
     val opusStatus = mutableStateOf("")
-    val opusComplete = mutableStateOf(false)\n    val geminiKeyConfigured = mutableStateOf(false)
+    val opusComplete = mutableStateOf(false)
+    val geminiKeyConfigured = mutableStateOf(false)
 
     private var overlayManager: OverlayManager? = null
     private lateinit var mediaProjectionLauncher: ActivityResultLauncher<Intent>
