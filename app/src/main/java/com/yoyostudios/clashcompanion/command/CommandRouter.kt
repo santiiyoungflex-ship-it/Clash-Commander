@@ -524,13 +524,20 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
      * Returns empty string if no detections available.
      */
     private fun buildArenaSection(): String {
-        val detections = ArenaDetector.currentDetections
-        if (detections.isEmpty()) return ""
-
-        val items = detections.joinToString(", ") { d ->
-            "${d.className} at (${d.centerX}, ${d.centerY}) conf=${String.format("%.0f", d.confidence * 100)}%"
+        val tracks = ArenaDetector.currentTracks
+        if (tracks.isEmpty()) {
+            return "ARENA TRACKING: No currently confirmed object tracks. Do not assume the arena is empty; visual detector may be unavailable or uncertain."
         }
-        return "ARENA STATE (enemy troops detected): $items"
+
+        val now = System.currentTimeMillis()
+        val items = tracks.joinToString("; ") { t ->
+            val ageMs = (now - t.lastSeenMs).coerceAtLeast(0L)
+            "${t.className}#${t.id} side=${t.side.name.lowercase()} lane=${t.lane.name.lowercase()} " +
+                    "motion=${t.motion.name.lowercase()} pos=(${t.normalizedX.toInt()},${t.normalizedY.toInt()}) " +
+                    "confidence=${String.format("%.0f", t.confidence * 100)}% age=${ageMs}ms"
+        }
+        return "ARENA TRACKING (model detections associated across frames; labels/side may be uncertain): $items. " +
+                "Treat old/low-confidence tracks cautiously; confirm troop identity against the supplied screenshot."
     }
 
     /**
