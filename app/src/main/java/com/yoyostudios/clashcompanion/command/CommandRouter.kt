@@ -6,7 +6,6 @@ import android.os.Looper
 import android.util.Log
 import com.google.gson.JsonParser
 import com.yoyostudios.clashcompanion.accessibility.ClashCompanionAccessibilityService
-import com.yoyostudios.clashcompanion.BuildConfig
 import com.yoyostudios.clashcompanion.api.GeminiClient
 import com.yoyostudios.clashcompanion.api.RoboflowClient
 import com.yoyostudios.clashcompanion.capture.ScreenCaptureService
@@ -279,7 +278,7 @@ object CommandRouter {
             return
         }
 
-        if (BuildConfig.GEMINI_API_KEY.isBlank()) {
+        if (!GeminiClient.isConfigured()) {
             overlay?.updateStatus("Smart Path needs API key — use 'knight left' etc.")
             Log.w(TAG, "CMD: SMART path skipped — no GEMINI_API_KEY")
             return
