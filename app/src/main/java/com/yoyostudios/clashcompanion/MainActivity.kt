@@ -55,6 +55,7 @@ class MainActivity : ComponentActivity() {
     val opusStatus = mutableStateOf("")
     val opusComplete = mutableStateOf(false)
     val geminiKeyConfigured = mutableStateOf(false)
+    val roboflowKeyConfigured = mutableStateOf(false)
 
     private var overlayManager: OverlayManager? = null
     private lateinit var mediaProjectionLauncher: ActivityResultLauncher<Intent>
@@ -65,6 +66,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         ApiKeyStore.initialize(applicationContext)
         geminiKeyConfigured.value = GeminiClient.isConfigured()
+        roboflowKeyConfigured.value = ApiKeyStore.isRoboflowKeyConfigured()
         Coordinates.init(this)
         DeckManager.loadCardDatabase(assets)
         CardClassifier.init(this)
@@ -218,6 +220,15 @@ class MainActivity : ComponentActivity() {
     fun saveGeminiApiKey(key: String) {
         ApiKeyStore.saveGeminiKey(key)
         geminiKeyConfigured.value = GeminiClient.isConfigured()
+    }
+
+    fun saveRoboflowApiKey(key: String) {
+        ApiKeyStore.saveRoboflowKey(key)
+        roboflowKeyConfigured.value = ApiKeyStore.isRoboflowKeyConfigured()
+    }
+
+    fun openRoboflowApiKeyPage() {
+        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://app.roboflow.com/settings/api")))
     }
 
     fun openGeminiApiKeyPage() {
