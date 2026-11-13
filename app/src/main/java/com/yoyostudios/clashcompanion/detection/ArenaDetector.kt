@@ -112,15 +112,15 @@ object ArenaDetector {
 
                     consecutiveErrors = 0
 
-                    // Convert to our Detection format with screen-space coordinates
-                    // Roboflow returns coordinates relative to the cropped image.
-                    // Add ARENA_CROP_TOP offset to map back to full-screen coordinates.
-                    val newDetections = roboDetections.map { d ->
+                    // Roboflow coordinates are relative to the cropped bitmap.
+                    // Translate Y back into full-frame coordinates using the scaled ROI.
+                    val roi = Coordinates.getArenaROI(safeCopy.width, safeCopy.height)
+                    val newDetections = if (roi == null) emptyList() else roboDetections.map { d ->
                         Detection(
                             className = d.className,
                             confidence = d.confidence,
-                            centerX = d.centerX, // Already in crop coords, Roboflow uses original image size
-                            centerY = d.centerY + Coordinates.ARENA_CROP_TOP,
+                            centerX = d.centerX,
+                            centerY = d.centerY + roi.y,
                             width = d.width,
                             height = d.height
                         )
@@ -192,16 +192,10 @@ object ArenaDetector {
      * Excludes: top UI bar (king towers/elixir) and bottom card hand.
      */
     private fun cropArena(frame: Bitmap): Bitmap? {
-        val top = Coordinates.ARENA_CROP_TOP
-        val bottom = Coordinates.ARENA_CROP_BOTTOM
-        val height = bottom - top
-
-        if (top < 0 || height <= 0 || top + height > frame.height) {
-            return null
-        }
+        val roi = Coordinates.getArenaROI(frame.width, frame.height) ?: return null
 
         return try {
-            Bitmap.createBitmap(frame, 0, top, frame.width, height)
+            Bitmap.createBitmap(frame, roi.x, roi.y, roi.w, roi.h)
         } catch (e: Exception) {
             Log.w(TAG, "ARENA: Crop failed: ${e.message}")
             null
