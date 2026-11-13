@@ -18,7 +18,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.yoyostudios.clashcompanion.capture.ScreenCaptureService
+import com.yoyostudios.clashcompanion.capture.ScreenCaptureService\nimport com.yoyostudios.clashcompanion.api.ApiKeyStore\nimport com.yoyostudios.clashcompanion.api.GeminiClient
 import com.yoyostudios.clashcompanion.deck.DeckManager
 import com.yoyostudios.clashcompanion.detection.CardClassifier
 import com.yoyostudios.clashcompanion.detection.HandDetector
@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
     val deckCards = mutableStateOf<List<DeckManager.CardInfo>>(emptyList())
     val deckModelWarning = mutableStateOf<String?>(null)
     val opusStatus = mutableStateOf("")
-    val opusComplete = mutableStateOf(false)
+    val opusComplete = mutableStateOf(false)\n    val geminiKeyConfigured = mutableStateOf(false)
 
     private var overlayManager: OverlayManager? = null
     private lateinit var mediaProjectionLauncher: ActivityResultLauncher<Intent>
@@ -60,7 +60,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        Coordinates.init(this)
+        ApiKeyStore.initialize(applicationContext)\n        geminiKeyConfigured.value = GeminiClient.isConfigured()\n        Coordinates.init(this)
         DeckManager.loadCardDatabase(assets)
         CardClassifier.init(this)
 
@@ -198,6 +198,15 @@ class MainActivity : ComponentActivity() {
             }
         }
         pollHandler.postDelayed(pollRunnable, 500)
+    }
+
+    fun saveGeminiApiKey(key: String) {
+        ApiKeyStore.saveGeminiKey(key)
+        geminiKeyConfigured.value = GeminiClient.isConfigured()
+    }
+
+    fun openGeminiApiKeyPage() {
+        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://aistudio.google.com/apikey")))
     }
 
     fun launchOverlay() {
