@@ -6,6 +6,10 @@ on:
     branches:
       - android-touch-autopilot-toggle
 
+concurrency:
+  group: clash-commander-android-build
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
