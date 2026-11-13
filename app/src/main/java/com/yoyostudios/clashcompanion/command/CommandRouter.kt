@@ -67,7 +67,7 @@ object CommandRouter {
     private var autopilotJob: Job? = null
 
     /** Autopilot decision interval in milliseconds */
-    private const val AUTOPILOT_INTERVAL_MS = 4000L
+    private const val AUTOPILOT_INTERVAL_MS = 2800L
 
     /** Commands that toggle autopilot ON */
     private val AUTOPILOT_ON_COMMANDS = setOf(
@@ -600,7 +600,16 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
             while (isActive) {
                 delay(AUTOPILOT_INTERVAL_MS)
 
-                // Skip if busy (another command executing) or hand not ready
+                // Stop rather than make decisions from a frozen screen.
+                if (!ScreenCaptureService.hasFreshFrame()) {
+                    withContext(Dispatchers.Main) {
+                        overlay?.updateStatus("AUTO: Live screen capture stale — stopping safely")
+                    }
+                    stopAutopilot()
+                    return@launch
+                }
+
+                // Skip if busy (another command executing) or hand not ready.
                 if (isBusy) continue
                 val hand = HandDetector.currentHand
                 if (hand.filterKeys { it < 4 }.isEmpty()) continue
