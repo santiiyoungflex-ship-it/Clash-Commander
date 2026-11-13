@@ -51,6 +51,11 @@ object ArenaDetector {
     var currentDetections: List<Detection> = emptyList()
         private set
 
+    /** Temporal tracks derived from successive detector outputs. */
+    @Volatile
+    var currentTracks: List<ArenaTracker.Track> = emptyList()
+        private set
+
     /** Whether arena polling is active */
     var isPolling = false
         private set
@@ -94,8 +99,10 @@ object ArenaDetector {
                 if (safeCopy == null) { delay(POLL_INTERVAL_MS); continue }
 
                 try {
+                    val capturedWidth = safeCopy.width
+                    val capturedHeight = safeCopy.height
                     // Compute the scaled crop while the source bitmap is still valid.
-                    val arenaRoi = Coordinates.getArenaROI(safeCopy.width, safeCopy.height)
+                    val arenaRoi = Coordinates.getArenaROI(capturedWidth, capturedHeight)
                     val arenaCrop = arenaRoi?.let {
                         Bitmap.createBitmap(safeCopy, it.x, it.y, it.w, it.h)
                     }
@@ -132,6 +139,12 @@ object ArenaDetector {
                     // Never carry forward old boxes as if they were current positions.
                     // Empty/failed frames must clear stale threats instead of steering a defense.
                     currentDetections = newDetections
+                    currentTracks = if (roi == null) emptyList() else ArenaTracker.update(
+                        newDetections,
+                        capturedWidth,
+                        roi.y,
+                        roi.h
+                    )
                     val merged = newDetections
 
                     if (newDetections.isNotEmpty()) {
@@ -168,6 +181,8 @@ object ArenaDetector {
         pollJob = null
         isPolling = false
         currentDetections = emptyList()
+        currentTracks = emptyList()
+        ArenaTracker.clear()
         Log.i(TAG, "ARENA: Polling stopped")
     }
 
