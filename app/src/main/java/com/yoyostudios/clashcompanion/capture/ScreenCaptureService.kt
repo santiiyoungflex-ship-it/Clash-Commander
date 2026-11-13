@@ -36,7 +36,11 @@ class ScreenCaptureService : Service() {
 
         fun getLatestFrame(): Bitmap? = instance?.latestFrame?.get()
 
-        fun hasFreshFrame(maxAgeMs: Long = 1500L): Boolean {\n            val service = instance ?: return false\n            val timestamp = service.lastFrameAtMs\n            return timestamp > 0L && System.currentTimeMillis() - timestamp <= maxAgeMs\n        }
+        fun hasFreshFrame(maxAgeMs: Long = 1500L): Boolean {
+            val service = instance ?: return false
+            val timestamp = service.lastFrameAtMs
+            return timestamp > 0L && System.currentTimeMillis() - timestamp <= maxAgeMs
+        }
     }
 
     private var mediaProjection: MediaProjection? = null
@@ -146,6 +150,7 @@ class ScreenCaptureService : Service() {
                 // The scanner may still be reading the previous frame on another thread.
                 val oldPrevious = previousFrame
                 previousFrame = latestFrame.getAndSet(cropped)
+                lastFrameAtMs = System.currentTimeMillis()
                 oldPrevious?.recycle()
             } catch (e: Exception) {
                 Log.e(TAG, "ScreenCapture frame error: ${e.message}")
@@ -194,6 +199,7 @@ class ScreenCaptureService : Service() {
         previousFrame = null
         latestFrame.get()?.recycle()
         latestFrame.set(null)
+        lastFrameAtMs = 0L
         instance = null
         Log.i(TAG, "ScreenCaptureService destroyed")
     }
