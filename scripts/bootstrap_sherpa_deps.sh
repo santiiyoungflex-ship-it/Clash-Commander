@@ -90,6 +90,8 @@ extract_zipformer() {
     extracted=("${required_a[@]}")
   elif tar -xjf "$tarball" -C "$TMP_DIR" "${required_b[@]}"; then
     extracted=("${required_b[@]}")
+  elif tar -xjf "$tarball" -C "$TMP_DIR" "${required_c[@]}"; then
+    extracted=("${required_c[@]}")
   else
     echo "ERROR: Failed to extract Zipformer model files from archive" >&2
     exit 1
@@ -111,6 +113,12 @@ extract_android_jni() {
     "jniLibs/arm64-v8a/libsherpa-onnx-cxx-api.so"
   )
   local required_b=(
+    "./jniLibs/arm64-v8a/libonnxruntime.so"
+    "./jniLibs/arm64-v8a/libsherpa-onnx-jni.so"
+    "./jniLibs/arm64-v8a/libsherpa-onnx-c-api.so"
+    "./jniLibs/arm64-v8a/libsherpa-onnx-cxx-api.so"
+  )
+  local required_c=(
     "sherpa-onnx-v1.12.23-android/jniLibs/arm64-v8a/libonnxruntime.so"
     "sherpa-onnx-v1.12.23-android/jniLibs/arm64-v8a/libsherpa-onnx-jni.so"
     "sherpa-onnx-v1.12.23-android/jniLibs/arm64-v8a/libsherpa-onnx-c-api.so"
