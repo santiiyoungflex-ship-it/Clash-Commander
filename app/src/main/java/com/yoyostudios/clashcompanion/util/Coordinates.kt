@@ -18,7 +18,14 @@ object Coordinates {
     private var screenH: Float = REF_H
 
     fun init(context: Context) {
-        val dm: DisplayMetrics = context.resources.displayMetrics
+        // Gesture injection and MediaProjection use the full physical display,
+        // including system bars. resources.displayMetrics can exclude those
+        // areas on Android, shifting vertical taps on devices like Moto G13.
+        val dm = DisplayMetrics()
+        @Suppress("DEPRECATION")
+        val display = (context.getSystemService(Context.WINDOW_SERVICE) as android.view.WindowManager).defaultDisplay
+        @Suppress("DEPRECATION")
+        display.getRealMetrics(dm)
         screenW = dm.widthPixels.toFloat()
         screenH = dm.heightPixels.toFloat()
     }
@@ -93,10 +100,12 @@ object Coordinates {
     const val ARENA_CROP_BOTTOM = 1900
 
     // ── Card Slot Centers (bottom of screen, 4 visible cards) ──
-    val CARD_SLOT_1 get() = pos(350f, 2130f)
-    val CARD_SLOT_2 get() = pos(520f, 2130f)
-    val CARD_SLOT_3 get() = pos(690f, 2130f)
-    val CARD_SLOT_4 get() = pos(860f, 2130f)
+    // Centers calibrated from the 720x1600 Moto G13 match screenshot.
+    // Scaled reference x positions: 335, 540, 745, 950 on a 1080px display.
+    val CARD_SLOT_1 get() = pos(335f, 2130f)
+    val CARD_SLOT_2 get() = pos(540f, 2130f)
+    val CARD_SLOT_3 get() = pos(745f, 2130f)
+    val CARD_SLOT_4 get() = pos(950f, 2130f)
 
     val CARD_SLOTS get() = listOf(CARD_SLOT_1, CARD_SLOT_2, CARD_SLOT_3, CARD_SLOT_4)
 
