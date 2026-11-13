@@ -449,8 +449,9 @@ $arenaSection$lastPlayedSection
 
 VALID ZONES: left_bridge, right_bridge, center, behind_left, behind_right, back_center, front_left, front_right, opponent_left_tower, opponent_right_tower, opponent_king
 
-If an ARENA screenshot image is provided, use it as ground truth for threats and lane selection.
+ARENA VISION IS REQUIRED FOR EVERY AUTOPILOT DECISION. The supplied image is a crop of the live battlefield.
 Orientation: YOUR side is the BOTTOM of the screen. ENEMY side is the TOP.
+First inspect the image: list visible enemy troops/buildings, estimate each center position, classify lane (left/right/center), and infer movement only if multiple observations support it. Do not claim a troop identity when uncertain. Distinguish enemy units from friendly units and arena decorations.
 
 Rules:
 - ONLY suggest cards in CURRENT HAND. If hand detection is uncertain, return wait.
@@ -468,8 +469,7 @@ Rules:
 - Never invent unseen enemy cards, tower HP, elixir, or damage.
 - Buildings go in center only if actually present in the deck.
 - For follow-up, preserve lane coherence only when the lane remains safe.
-Respond ONLY with JSON: {"action":"play","card":"<exact card name>","zone":"<zone_key>","reasoning":"<15 words max>"}
-Or ONLY if user says wait: {"action":"wait","reasoning":"<15 words max>"}"""
+Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (array of {"card":"name or unknown","lane":"left/right/center/unknown","urgency":"low/medium/high"}). For play: {"action":"play","card":"<exact card name>","zone":"<zone_key>","scene_confidence":0.0,"enemy_threats":[],"reasoning":"<15 words max>"}. For wait: {"action":"wait","scene_confidence":0.0,"enemy_threats":[],"reasoning":"<15 words max>"}. If image is blurry, cropped incorrectly, or troop/lane cannot be determined reliably, lower scene_confidence and wait."""
     }
 
     private fun wantsDefenseVision(text: String): Boolean {
@@ -605,22 +605,14 @@ Or ONLY if user says wait: {"action":"wait","reasoning":"<15 words max>"}"""
                                 "avoid wasting Rocket and avoid random placements. Never invent unseen enemy cards or tower HP."
 
                         val arenaImg = captureArenaImageBase64()
-                        if (arenaImg != null) {
-                            GeminiClient.chatWithImages(
-                                systemInstruction = systemPrompt,
-                                userText = userText,
-                                images = listOf(arenaImg),
-                                maxTokens = 256,
-                                jsonMode = true
-                            )
-                        } else {
-                            GeminiClient.chat(
-                                systemInstruction = systemPrompt,
-                                userMessage = userText,
-                                maxTokens = 256,
-                                jsonMode = true
-                            )
-                        }
+                            ?: throw IllegalStateException("Arena screenshot unavailable; refusing blind autopilot play")
+                        GeminiClient.chatWithImages(
+                            systemInstruction = systemPrompt,
+                            userText = userText,
+                            images = listOf(arenaImg),
+                            maxTokens = 384,
+                            jsonMode = true
+                        )
                     }
 
                     val elapsed = System.currentTimeMillis() - startMs
@@ -629,6 +621,22 @@ Or ONLY if user says wait: {"action":"wait","reasoning":"<15 words max>"}"""
 
                     val action = json.get("action")?.asString ?: "wait"
                     val reasoning = json.get("reasoning")?.asString ?: ""
+                    val sceneConfidence = json.get("scene_confidence")?.asFloat ?: 0f
+                    val threatSummary = json.getAsJsonArray("enemy_threats")?.joinToString { item ->
+                        val threat = item.asJsonObject
+                        "${threat.get("card")?.asString ?: "unknown"}:${threat.get("lane")?.asString ?: "?"}"
+                    } ?: "none/uncertain"
+
+                    // Fail closed: do not execute a move when visual interpretation is uncertain.
+                    if (sceneConfidence < 0.70f) {
+                        withContext(Dispatchers.Main) {
+                            overlay?.updateStatus("AUTO: Vision uncertain (${(sceneConfidence * 100).toInt()}%) — waiting")
+                        }
+                        isBusy = false
+                        continue
+                    }
+
+                    Log.i(TAG, "AUTO vision confidence=${sceneConfidence} threats=${threatSummary}")
 
                     if (action == "wait") {
                         withContext(Dispatchers.Main) {
