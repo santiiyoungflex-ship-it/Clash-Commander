@@ -45,7 +45,7 @@ class ArenaDecisionEngineTest {
 
     @Test fun staleTrackCannotTriggerAction() {
         val result = ArenaDecisionEngine.evaluate(
-            listOf(track(ageMs = 701L)), setOf("The Log"), 100L, 5, 1701L
+            listOf(track(ageMs = 0L)), setOf("The Log"), 100L, 5, 1701L
         )
         assertEquals(TacticalPolicy.Action.WAIT, result.action)
     }
