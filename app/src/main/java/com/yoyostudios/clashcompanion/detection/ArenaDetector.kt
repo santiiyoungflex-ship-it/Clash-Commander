@@ -93,6 +93,7 @@ object ArenaDetector {
                     continue
                 }
 
+                val capturedAtMs = ScreenCaptureService.latestFrameTimestampMs()
                 val frame = ScreenCaptureService.getLatestFrame()
                 if (frame == null || frame.isRecycled) {
                     delay(POLL_INTERVAL_MS)
@@ -150,7 +151,8 @@ object ArenaDetector {
                             centerX = d.centerX,
                             centerY = d.centerY + roi.y,
                             width = d.width,
-                            height = d.height
+                            height = d.height,
+                            timestamp = capturedAtMs
                         )
                     }
 
@@ -161,7 +163,8 @@ object ArenaDetector {
                         newDetections,
                         roi.w,
                         roi.y,
-                        roi.h
+                        roi.h,
+                        now = capturedAtMs
                     )
                     val merged = newDetections
 
