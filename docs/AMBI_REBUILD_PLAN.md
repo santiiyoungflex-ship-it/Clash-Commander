@@ -73,6 +73,7 @@ These components must be individually measured before reuse. Keep stable capture
 - [x] Add an isolated deterministic tactical policy with fail-closed behavior and unit tests (not yet connected to automatic taps).
 - [x] Harden temporal association: prevent same-frame duplicate merging, reject invalid confidence/clock anomalies, expire stale tracks, and require multi-frame confirmation.
 - [x] Add a vision-to-strategy bridge that only forwards confirmed, fresh tracks into the fail-closed tactical policy (analysis-only; no automatic taps).
+- [x] Preserve original screen-capture timestamps through inference latency, reject frozen/future-dated frames, and expose timestamped hand snapshots.
 - [ ] Rework full tactical tracking and decision engine.
 - [x] Add unit tests for tracker association, confirmation, stale expiry, invalid confidence, and strategy bridge safety.
 - [ ] Add recorded-match replay fixtures and broader automated tests.
