@@ -88,3 +88,10 @@ These components must be individually measured before reuse. Keep stable capture
 ## Branding
 
 Working title: **Ambi**. Requested visual direction: a Heisenberg/Walter White-inspired portrait treatment. The final launcher artwork must be packaged as actual Android mipmap assets; a mockup or a generated image shown in chat is not an installed app icon.
+
+### Additional detector candidates reviewed (November 2026)
+- The Bob Watson Clash Royale dataset reports CC BY 4.0, 1,792 images, 145 classes, mAP@50 81.4%, precision 86.4%, and recall 65.8%. These are publisher-reported metrics, not independently reproduced; the recall means misses remain material. It is a promising training-data candidate, not an approved ready-to-ship detector.
+- The MDT dataset reports CC BY 4.0, 3,097 images and 105 classes; its published RF-DETR Nano model reports mAP@50 58.8%, precision 58.4%, and recall 58.5%. Its author explicitly warns that annotations are not very accurate. Not selected as the production detector.
+- Roboflow's current licensing guide lists RF-DETR Nano-to-Large under Apache-2.0, while Atto/Femto/Pico/XL/2XL have different terms. This supports evaluating a self-trained RF-DETR Nano using properly licensed training data; it does not grant rights to a third-party hosted model's weights.
+- TowerLogic contains detector and policy weight files, but the repository has no declared GitHub license and no LICENSE file was found. Do not copy its code or weights into Ambi without permission.
+- Next model gate: obtain a reproducible export of an appropriately licensed RF-DETR Nano trained on the selected dataset, verify ONNX compatibility, then benchmark CPU inference on the actual Moto e32 before integrating it.
