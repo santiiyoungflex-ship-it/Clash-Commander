@@ -223,16 +223,8 @@ class OverlayManager(private val context: Context) {
         CommandRouter.overlay = this
         Log.i(TAG, "Overlay shown")
 
-        // Auto-start hand scanning with ML classifier
-        if (!HandDetector.isScanning && ScreenCaptureService.instance != null) {
-            HandDetector.startScanning(CommandRouter.deckCards, context) { hand ->
-                handler.post {
-                    updateHandDisplay(hand)
-                    CommandRouter.checkQueue()
-                }
-            }
-            updateStatus("Scanning hand (ML classifier)")
-        }
+        // Start hand scanning whenever capture is already active.
+        ensureHandScanning()
 
         // Start arena detection if Roboflow API key is configured
         if (ApiKeyStore.isRoboflowKeyConfigured() && !ArenaDetector.isPolling) {
@@ -245,6 +237,31 @@ class OverlayManager(private val context: Context) {
         // Start periodic queue check (every 2s) for elixir retry
         handler.removeCallbacks(queueCheckRunnable)
         handler.postDelayed(queueCheckRunnable, 2000)
+    }
+
+
+    /**
+     * Ensure the hand classifier is running. Autopilot may be enabled after
+     * screen capture starts, so scanning must not depend only on overlay creation.
+     */
+    fun ensureHandScanning() {
+        if (HandDetector.isScanning) return
+        if (ScreenCaptureService.instance == null) {
+            updateStatus("AUTO: Screen capture is not running")
+            return
+        }
+        if (!HandDetector.isCalibrated) {
+            updateStatus("AUTO: Card model failed to load")
+            Log.e(TAG, "CARD-ML: Cannot start autopilot hand scan — classifier unavailable")
+            return
+        }
+        HandDetector.startScanning(CommandRouter.deckCards, context) { hand ->
+            handler.post {
+                updateHandDisplay(hand)
+                CommandRouter.checkQueue()
+            }
+        }
+        updateStatus("AUTO: Starting hand detection...")
     }
 
     /**
