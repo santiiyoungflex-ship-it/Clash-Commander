@@ -619,7 +619,7 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
                 // Skip if busy (another command executing) or hand not ready.
                 if (isBusy) continue
                 val hand = HandDetector.currentHand
-                if (hand.filterKeys { it < 4 }.isEmpty()) {
+                if (HandDetector.handAgeMs !in 0..650L || hand.filterKeys { it < 4 }.isEmpty()) {
                     withContext(Dispatchers.Main) {
                         val reason = when {
                             !HandDetector.isCalibrated -> "Card model unavailable"
@@ -773,7 +773,8 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
         }
 
         // Look up target in ArenaDetector cache
-        val detections = ArenaDetector.currentDetections
+        val nowMs = System.currentTimeMillis()
+        val detections = ArenaDetector.currentDetections.filter { nowMs - it.timestamp in 0..700L }
         val targetName = cmd.targetCard.lowercase()
 
         // Fuzzy match detection class name against target card name
@@ -868,6 +869,7 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
         // Prune expired rules (>5 minutes old)
         val now = System.currentTimeMillis()
         activeRules.removeAll { now - it.timestamp > 300_000L }
+        val freshDetections = detections.filter { now - it.timestamp in 0..700L }
 
         val triggeredRules = mutableListOf<ConditionalRule>()
 
@@ -875,7 +877,7 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
             val triggerName = rule.triggerCard.lowercase()
 
             // Check if any detection matches the trigger card
-            val detected = detections.any { d ->
+            val detected = freshDetections.any { d ->
                 val cls = d.className.lowercase().replace("-", " ").replace("_", " ")
                 cls.contains(triggerName) || triggerName.contains(cls) ||
                         CommandParser.levenshteinSimilarity(cls, triggerName) > 0.6f
@@ -885,7 +887,7 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
                 rule.consecutiveFrames++
                 if (rule.consecutiveFrames >= 2) {
                     // Debounce passed — check if response card is in hand
-                    if (HandDetector.cardToSlot.containsKey(rule.responseCard)) {
+                    if (HandDetector.handAgeMs in 0..650L && HandDetector.cardToSlot.containsKey(rule.responseCard)) {
                         triggeredRules.add(rule)
                     } else {
                         overlay?.updateStatus("RULE: ${rule.triggerCard} seen but ${rule.responseCard} not in hand")
@@ -982,6 +984,7 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
         commandQueue.removeAll { now - it.timestamp > QUEUE_TIMEOUT_MS }
         if (commandQueue.isEmpty()) return
 
+        if (HandDetector.handAgeMs !in 0..650L) return
         val handSlots = HandDetector.cardToSlot
 
         // Remove entries where card has been absent for >5s after attempt
