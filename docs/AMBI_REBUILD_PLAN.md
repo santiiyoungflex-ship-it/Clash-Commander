@@ -70,8 +70,8 @@ These components must be individually measured before reuse. Keep stable capture
 - [x] Rename Gradle root project to Ambi.
 - [ ] Replace hosted arena inference with a licensed, measured on-device detector.
 - [ ] Remove network LLM from the tactical hot path.
-- [x] Add an isolated deterministic tactical policy with fail-closed behavior and unit tests (not yet connected to automatic taps).\n- [ ] Rework tracking and tactical decision engine.
-- [ ] Add replay fixtures and automated tests.
+- [x] Add an isolated deterministic tactical policy with fail-closed behavior and unit tests (not yet connected to automatic taps).\n- [x] Harden temporal association: prevent same-frame duplicate merging, reject invalid confidence/clock anomalies, expire stale tracks, and require multi-frame confirmation.\n- [x] Add a vision-to-strategy bridge that only forwards confirmed, fresh tracks into the fail-closed tactical policy (analysis-only; no automatic taps).\n- [ ] Rework full tactical tracking and decision engine.
+- [x] Add unit tests for tracker association, confirmation, stale expiry, invalid confidence, and strategy bridge safety.\n- [ ] Add recorded-match replay fixtures and broader automated tests.
 - [ ] Validate coordinates and latency on Moto e32.
 - [ ] Produce and inspect a release APK and checksum.
 - [ ] Supervised gameplay validation.
