@@ -11,7 +11,7 @@ WORKSPACE = "clash-royale-data-collection"
 PROJECT = "clash-royale-bhjq1"
 VERSION = 2
 IMAGE_SIZE = 320
-EPOCHS = int(os.getenv("AMBIX_EPOCHS", "80"))
+EPOCHS = int(os.getenv("AMBIX_EPOCHS", "30"))
 OUTPUT = Path("runs/ambix")
 ASSETS = Path("AmbiX/app/src/main/assets")
 
