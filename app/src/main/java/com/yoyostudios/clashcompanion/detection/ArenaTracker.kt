@@ -1,14 +1,11 @@
 package com.yoyostudios.clashcompanion.detection
 
-import kotlin.math.abs
 import kotlin.math.sqrt
 
 /**
- * Lightweight temporal association for arena detections.
- *
- * This does NOT identify objects by itself. It associates detections emitted by
- * a configured object detector across frames, estimates screen-space motion,
- * and expires tracks quickly so stale positions are never treated as current.
+ * Lightweight temporal association for detections emitted by an object detector.
+ * It never identifies objects itself. A track is marked confirmed only after
+ * at least two distinct frames; consumers must reject unconfirmed/stale tracks.
  */
 object ArenaTracker {
     enum class Lane { LEFT, CENTER, RIGHT, UNKNOWN }
@@ -27,7 +24,10 @@ object ArenaTracker {
         val side: Side,
         val motion: Motion,
         val speedPerSecond: Float,
-        val lastSeenMs: Long
+        val lastSeenMs: Long,
+        val ageMs: Long,
+        val hits: Int,
+        val confirmed: Boolean
     )
 
     private data class MutableTrack(
@@ -44,9 +44,10 @@ object ArenaTracker {
 
     private val tracks = mutableListOf<MutableTrack>()
     private var nextId = 1L
-    private const val MAX_AGE_MS = 1700L
+    private const val MAX_AGE_MS = 1100L
     private const val MATCH_DISTANCE = 0.16f
     private const val MIN_CONFIDENCE = 0.35f
+    private const val MIN_CONFIRMATION_HITS = 2
 
     @Synchronized
     fun update(
@@ -59,7 +60,7 @@ object ArenaTracker {
         if (frameWidth <= 0 || roiHeight <= 0) return emptyList()
 
         val candidates = detections
-            .filter { it.confidence >= MIN_CONFIDENCE }
+            .filter { it.confidence.isFinite() && it.confidence in MIN_CONFIDENCE..1f }
             .map {
                 Triple(
                     it,
@@ -67,8 +68,10 @@ object ArenaTracker {
                     ((it.centerY - roiY).toFloat() / roiHeight).coerceIn(0f, 1f)
                 )
             }
+            .sortedByDescending { it.first.confidence }
 
-        tracks.removeAll { now - it.seenAt > MAX_AGE_MS }
+        // Reject clock anomalies rather than allowing negative track ages.
+        tracks.removeAll { now < it.seenAt || now - it.seenAt > MAX_AGE_MS }
         val used = mutableSetOf<Long>()
 
         for ((d, nx, ny) in candidates) {
@@ -81,7 +84,11 @@ object ArenaTracker {
                 ?.first
 
             if (match == null) {
-                tracks.add(MutableTrack(nextId++, d.className, d.confidence, nx, ny, 0f, 0f, now, 1))
+                val created = MutableTrack(nextId++, d.className, d.confidence, nx, ny, 0f, 0f, now, 1)
+                tracks.add(created)
+                // A new track belongs to this frame and cannot absorb another detection
+                // from the same frame. This prevents two nearby units collapsing into one.
+                used.add(created.id)
             } else {
                 val dt = ((now - match.seenAt).coerceAtLeast(1L)) / 1000f
                 val rawVx = (nx - match.x) / dt
@@ -100,7 +107,7 @@ object ArenaTracker {
 
         return tracks.mapNotNull { t ->
             val age = now - t.seenAt
-            if (age > MAX_AGE_MS) return@mapNotNull null
+            if (age !in 0..MAX_AGE_MS) return@mapNotNull null
             val lane = when {
                 t.x < 0.36f -> Lane.LEFT
                 t.x > 0.64f -> Lane.RIGHT
@@ -112,7 +119,7 @@ object ArenaTracker {
                 else -> Side.UNKNOWN
             }
             val motion = when {
-                t.hits < 2 -> Motion.UNKNOWN
+                t.hits < MIN_CONFIRMATION_HITS -> Motion.UNKNOWN
                 t.vy > 0.025f -> Motion.ADVANCING
                 t.vy < -0.025f -> Motion.RETREATING
                 else -> Motion.STATIONARY
@@ -129,7 +136,10 @@ object ArenaTracker {
                 side = side,
                 motion = motion,
                 speedPerSecond = sqrt(t.vx * t.vx + t.vy * t.vy),
-                lastSeenMs = t.seenAt
+                lastSeenMs = t.seenAt,
+                ageMs = age,
+                hits = t.hits,
+                confirmed = t.hits >= MIN_CONFIRMATION_HITS
             )
         }.sortedBy { it.lastSeenMs }
     }
@@ -137,6 +147,7 @@ object ArenaTracker {
     @Synchronized
     fun clear() {
         tracks.clear()
+        nextId = 1L
     }
 
     private fun distance(ax: Float, ay: Float, bx: Float, by: Float): Float {
