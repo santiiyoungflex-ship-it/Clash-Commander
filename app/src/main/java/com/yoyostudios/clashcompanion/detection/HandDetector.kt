@@ -35,6 +35,14 @@ object HandDetector {
     var currentHand: Map<Int, String> = emptyMap()
         private set
 
+    /** Timestamp of the last successful five-slot scan; consumers must enforce freshness. */
+    @Volatile
+    var lastScanAtMs: Long = 0L
+        private set
+
+    val handAgeMs: Long?
+        get() = lastScanAtMs.takeIf { it > 0L }?.let { (System.currentTimeMillis() - it).coerceAtLeast(0L) }
+
     /** Convenience: cardName → slotIndex (hand slots 0-3 only) */
     val cardToSlot: Map<String, Int>
         get() = currentHand.filterKeys { it < 4 }
@@ -178,6 +186,7 @@ object HandDetector {
                                 matchDetected = false
                                 consecutiveNonMatch = 0
                                 currentHand = emptyMap()
+                                lastScanAtMs = 0L
                                 lastHand = emptyMap()
                                 slotMissCount.clear()
                                 onHandChanged?.invoke(emptyMap())
@@ -228,8 +237,9 @@ object HandDetector {
 
                     val hand = merged.toMap()
 
-                    // Atomic swap of hand state
+                    // Atomic swap of hand state and source timestamp for downstream freshness gates.
                     currentHand = hand
+                    lastScanAtMs = System.currentTimeMillis()
 
                     if (hand != lastHand) {
                         lastHand = hand.toMap()
@@ -255,6 +265,8 @@ object HandDetector {
     fun stopScanning() {
         scanJob?.cancel()
         scanJob = null
+        lastScanAtMs = 0L
+        currentHand = emptyMap()
         Log.i(TAG, "CARD-ML: Scanning stopped")
     }
 
