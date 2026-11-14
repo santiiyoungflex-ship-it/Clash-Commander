@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       epochs:
-        description: Training epochs (1-120)
+        description: Arena model training epochs (1-120)
         required: true
-        default: "80"
+        default: "30"
         type: string
 
 permissions:
@@ -19,7 +19,7 @@ jobs:
     env:
       ROBOFLOW_API_KEY: ${{ secrets.ROBOFLOW_API_KEY }}
       AMBIX_EPOCHS: ${{ inputs.epochs }}
-      AMBIX_HUD_EPOCHS: "60"
+      AMBIX_HUD_EPOCHS: "40"
     steps:
       - uses: actions/checkout@v4
         with:
