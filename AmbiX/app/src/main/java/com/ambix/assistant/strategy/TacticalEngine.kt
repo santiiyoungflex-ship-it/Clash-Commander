@@ -51,7 +51,7 @@ object AmbiXTacticalEngine {
 
         val stableDetections = detectionFilter.update(snapshot.detections, snapshot.capturedAtMs)
         val threats = stableDetections
-            .filter { it.team == Team.OPPONENT && it.kind in setOf(ObjectKind.TROOP, ObjectKind.BUILDING) && it.confidence >= 0.88f }
+            .filter { it.team == Team.OPPONENT && it.kind in setOf(ObjectKind.TROOP, ObjectKind.BUILDING, ObjectKind.SPELL) && it.confidence >= 0.88f }
             .sortedByDescending { it.confidence }
 
         val threat = threats.firstOrNull()
