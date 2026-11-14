@@ -14,7 +14,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Runtime for an Ultralytics-style YOLOv8 TFLite export:
+ * Runtime for an Ultralytics YOLOv8/YOLO11 TFLite export:
  * float32 input [1,H,W,3], raw output [1,4+classes,N] or [1,N,4+classes].
  *
  * The app intentionally remains vision-not-ready until both the trained model
