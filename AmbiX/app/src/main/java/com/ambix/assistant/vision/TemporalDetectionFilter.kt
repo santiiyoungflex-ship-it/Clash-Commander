@@ -14,7 +14,8 @@ class TemporalDetectionFilter(
     private val windowSize: Int = 5,
     private val minHits: Int = 3,
     private val maxMissedFrames: Int = 1,
-    private val minIou: Float = 0.30f
+    private val minIou: Float = 0.30f,
+    private val confidenceFloors: Map<ObjectKind, Float> = emptyMap()
 ) {
     private data class Track(
         val id: Long,
@@ -129,7 +130,7 @@ class TemporalDetectionFilter(
         return kept
     }
 
-    private fun admissionThreshold(kind: ObjectKind): Float = when (kind) {
+    private fun admissionThreshold(kind: ObjectKind): Float = confidenceFloors[kind] ?: when (kind) {
         ObjectKind.TROOP, ObjectKind.BUILDING -> 0.78f
         ObjectKind.TOWER -> 0.82f
         ObjectKind.SPELL -> 0.90f
