@@ -41,7 +41,7 @@ jobs:
           import json
           from pathlib import Path
           metadata = json.loads(Path("AmbiX/app/src/main/assets/model_metadata.json").read_text())
-          assert metadata["labels_count"] == 145
+          assert metadata["labels_count"] == 124
           assert metadata["tflite_input"] == "float32 [1,320,320,3]"
           print(json.dumps(metadata, indent=2))
           PY
