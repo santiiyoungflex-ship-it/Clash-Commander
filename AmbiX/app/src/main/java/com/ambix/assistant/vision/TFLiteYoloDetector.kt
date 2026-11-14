@@ -204,8 +204,8 @@ class TFLiteYoloDetector(context: Context) : BattleObjectDetector, Closeable {
             "elixir" in name -> ObjectKind.ELIXIR
             "card" in name || "hand" in name -> ObjectKind.CARD_IN_HAND
             "tower" in name || "princess tower" in name || "king tower" in name -> ObjectKind.TOWER
-            "spell" in name || name in setOf("the log", "rocket", "arrow", "arrows", "fireball", "goblin barrel", "zap", "poison", "lightning", "earthquake", "freeze", "rage", "tornado", "clone", "mirror", "void") -> ObjectKind.SPELL
-            "building" in name || name in setOf("cannon", "tesla", "mortar", "x-bow", "inferno tower", "bomb tower", "tombstone", "goblin cage", "furnace", "barbarian hut", "goblin hut") -> ObjectKind.BUILDING
+            name in setOf("the log", "log", "rocket", "arrow", "arrows", "fireball", "goblin barrel", "barbarian barrel", "zap", "poison", "lightning", "earthquake", "freeze", "rage", "tornado", "clone", "mirror", "void", "giant snowball", "goblin curse", "graveyard", "royal delivery") -> ObjectKind.SPELL
+            "building" in name || name in setOf("cannon", "tesla", "mortar", "x-bow", "x bow", "inferno tower", "bomb tower", "tombstone", "goblin cage", "furnace", "barbarian hut", "goblin hut", "elixir collector") -> ObjectKind.BUILDING
             name.isNotBlank() -> ObjectKind.TROOP
             else -> ObjectKind.UNKNOWN
         }
