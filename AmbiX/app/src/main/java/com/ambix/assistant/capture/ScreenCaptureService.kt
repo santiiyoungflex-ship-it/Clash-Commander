@@ -37,6 +37,13 @@ import com.ambix.assistant.vision.TemporalDetectionFilter
 import com.ambix.assistant.vision.TFLiteYoloDetector
 import java.util.concurrent.atomic.AtomicReference
 
+internal fun parseElixirLabel(label: String): Int? {
+    val match = Regex("^(?:(10|[0-9])\\s+elix(?:i|e)r|elix(?:i|e)r\\s+(10|[0-9]))$", RegexOption.IGNORE_CASE)
+        .matchEntire(label.trim()) ?: return null
+    return (match.groupValues[1].ifEmpty { match.groupValues[2] }).toIntOrNull()?.takeIf { it in 0..10 }
+}
+
+
 data class FrameReport(
     val width: Int,
     val height: Int,
@@ -246,8 +253,7 @@ class ScreenCaptureService : Service() {
         val elixir = hudStable.asSequence()
             .filter { it.kind == ObjectKind.ELIXIR }
             .mapNotNull { detection ->
-                Regex("^(10|[0-9])\\s+Elixer$", RegexOption.IGNORE_CASE)
-                    .find(detection.label)?.groupValues?.get(1)?.toIntOrNull()
+                parseElixirLabel(detection.label)
             }
             .firstOrNull()
 
