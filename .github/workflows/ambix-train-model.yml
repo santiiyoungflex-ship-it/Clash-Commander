@@ -46,12 +46,20 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          metadata = json.loads(Path("AmbiX/app/src/main/assets/model_metadata.json").read_text())
-          assert metadata["labels_count"] == 124
-          hud = json.loads(Path("AmbiX/app/src/main/assets/hud_model_metadata.json").read_text())
-          assert hud["labels_count"] == 115
+          assets = Path("AmbiX/app/src/main/assets")
+          metadata = json.loads((assets / "model_metadata.json").read_text())
+          hud = json.loads((assets / "hud_model_metadata.json").read_text())
+          arena_labels = [x for x in (assets / "labels.txt").read_text().splitlines() if x.strip()]
+          hud_labels = [x for x in (assets / "hud_labels.txt").read_text().splitlines() if x.strip()]
+          assert metadata["labels_count"] == len(arena_labels), (metadata["labels_count"], len(arena_labels))
+          assert hud["labels_count"] == len(hud_labels), (hud["labels_count"], len(hud_labels))
+          assert len(set(arena_labels)) == len(arena_labels), "Duplicate arena labels"
+          assert len(set(hud_labels)) == len(hud_labels), "Duplicate HUD labels"
           assert metadata["tflite_input"] == "float32 [1,320,320,3]"
-          print(json.dumps(metadata, indent=2))
+          assert hud["tflite_input"] == "float32 [1,320,320,3]"
+          assert (assets / "ambix_model.tflite").stat().st_size > 100_000
+          assert (assets / "ambix_hud.tflite").stat().st_size > 100_000
+          print(json.dumps({"arena": metadata, "hud": hud}, indent=2))
           PY
       - name: Commit trained on-device model
         run: |
