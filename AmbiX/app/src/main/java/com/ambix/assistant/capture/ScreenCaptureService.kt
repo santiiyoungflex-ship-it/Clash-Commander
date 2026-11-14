@@ -17,6 +17,8 @@ import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.IBinder
+import android.os.Handler
+import android.os.HandlerThread
 import android.util.DisplayMetrics
 import android.view.WindowManager
 import com.ambix.assistant.vision.Detection
@@ -46,6 +48,9 @@ class ScreenCaptureService : Service() {
     private var reader: ImageReader? = null
     private var display: VirtualDisplay? = null
     private var detector: TFLiteYoloDetector? = null
+    private var processingThread: HandlerThread? = null
+    private var processingHandler: Handler? = null
+    private var lastProcessedAtMs = 0L
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -94,6 +99,8 @@ class ScreenCaptureService : Service() {
             windowManager.defaultDisplay.getRealMetrics(metrics)
             val width = metrics.widthPixels
             val height = metrics.heightPixels
+            processingThread = HandlerThread("AmbiX-Vision").also { it.start() }
+            processingHandler = Handler(processingThread!!.looper)
             reader = ImageReader.newInstance(width, height, android.graphics.PixelFormat.RGBA_8888, 2)
             reader?.setOnImageAvailableListener({ imageReader ->
                 var image: Image? = null
@@ -105,7 +112,7 @@ class ScreenCaptureService : Service() {
                 } finally {
                     image?.close()
                 }
-            }, null)
+            }, processingHandler)
             display = projection?.createVirtualDisplay(
                 "AmbiX-screen", width, height, metrics.densityDpi,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, reader?.surface, null, null
@@ -120,6 +127,9 @@ class ScreenCaptureService : Service() {
     }
 
     private fun analyze(image: Image) {
+        val now = System.currentTimeMillis()
+        if (now - lastProcessedAtMs < 120L) return
+        lastProcessedAtMs = now
         val plane = image.planes[0]
         val buffer = plane.buffer
         val bytes = ByteArray(buffer.remaining())
@@ -187,6 +197,10 @@ class ScreenCaptureService : Service() {
         projection = null
         detector?.close()
         detector = null
+        processingHandler = null
+        processingThread?.quitSafely()
+        processingThread = null
+        lastProcessedAtMs = 0L
         VisionState.modelReady.set(false)
         VisionState.latestDetections.set(emptyList())
         VisionState.status.set("Captura detenida")
