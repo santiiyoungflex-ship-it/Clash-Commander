@@ -70,12 +70,12 @@ These components must be individually measured before reuse. Keep stable capture
 - [x] Rename Gradle root project to Ambi.
 - [ ] Replace hosted arena inference with a licensed, measured on-device detector.
 - [ ] Remove network LLM from the tactical hot path.
-- [ ] Rework tracking and tactical decision engine.
+- [x] Add an isolated deterministic tactical policy with fail-closed behavior and unit tests (not yet connected to automatic taps).\n- [ ] Rework tracking and tactical decision engine.
 - [ ] Add replay fixtures and automated tests.
 - [ ] Validate coordinates and latency on Moto e32.
 - [ ] Produce and inspect a release APK and checksum.
 - [ ] Supervised gameplay validation.
 
-## Branding
+## Model and dataset licensing research\n- The previously selected Hugging Face YOLOv8n weights still have no explicit redistributable license; do not bundle them.\n- A Roboflow Clash Royale dataset published under CC BY 4.0 is available, but a dataset license does not itself grant rights to unrelated pretrained weights or provide a qualified on-device model. It may be a lawful training-data candidate subject to attribution and dataset terms.\n- The current Roboflow hosted model remains a remote fallback only; it does not satisfy the local, low-latency perception requirement.\n\n## Branding
 
 Working title: **Ambi**. Requested visual direction: a Heisenberg/Walter White-inspired portrait treatment. The final launcher artwork must be packaged as actual Android mipmap assets; a mockup or a generated image shown in chat is not an installed app icon.
