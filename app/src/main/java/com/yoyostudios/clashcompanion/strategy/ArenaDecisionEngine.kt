@@ -11,10 +11,11 @@ object ArenaDecisionEngine {
         tracks: List<ArenaTracker.Track>,
         hand: Set<String>,
         handAgeMs: Long?,
-        elixir: Int?
+        elixir: Int?,
+        nowMs: Long = System.currentTimeMillis()
     ): TacticalPolicy.Decision {
         val threats = tracks.asSequence()
-            .filter { it.confirmed && it.ageMs in 0..700L }
+            .filter { it.confirmed && nowMs - it.lastSeenMs in 0..700L }
             .map {
                 TacticalPolicy.Threat(
                     className = it.className.removePrefix("enemy_"),
@@ -31,7 +32,7 @@ object ArenaDecisionEngine {
                         ArenaTracker.Lane.UNKNOWN -> TacticalPolicy.Lane.UNKNOWN
                     },
                     normalizedY = it.normalizedY,
-                    ageMs = it.ageMs
+                    ageMs = nowMs - it.lastSeenMs
                 )
             }
             .toList()
