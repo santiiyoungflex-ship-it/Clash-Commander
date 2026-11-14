@@ -216,17 +216,22 @@ class ScreenCaptureService : Service() {
         val hudStable = hudFilter.update(rawHud, capturedAt)
         val allStable = arenaStable + hudStable
 
-        val hand = hudStable.asSequence()
+        val handCandidates = hudStable
             .filter { it.kind == ObjectKind.CARD_IN_HAND }
             .filter { it.label.endsWith(" In Hand", true) || it.label.endsWith(" Card", true) }
+            .map { detection ->
+                val name = detection.label.removeSuffix(" In Hand").removeSuffix(" Card").trim()
+                name to detection
+            }
+            .groupBy { it.first.lowercase() }
+            .values
+            .map { group -> group.maxBy { it.second.confidence }.second }
             .sortedBy { it.bounds.centerX }
             .take(4)
-            .mapIndexed { index, detection ->
-                val name = detection.label
-                    .removeSuffix(" In Hand").removeSuffix(" Card").trim()
-                HandCard(name, index, detection.confidence, detection.bounds)
-            }
-            .toList()
+        val hand = handCandidates.mapIndexed { index, detection ->
+            val name = detection.label.removeSuffix(" In Hand").removeSuffix(" Card").trim()
+            HandCard(name, index, detection.confidence, detection.bounds)
+        }
 
         val nextCard = hudStable.firstOrNull {
             it.kind == ObjectKind.CARD_IN_HAND && it.label.endsWith(" Next", true)
