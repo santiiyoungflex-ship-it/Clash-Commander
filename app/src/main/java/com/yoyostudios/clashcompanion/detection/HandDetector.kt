@@ -149,6 +149,17 @@ object HandDetector {
             val slotMissCount = mutableMapOf<Int, Int>() // slot -> consecutive scans with no detection
 
             while (isActive) {
+                // A repeated/frozen screenshot must not refresh the hand timestamp.
+                // Keep the source-frame timestamp, not inference completion time.
+                if (!ScreenCaptureService.hasFreshFrame(maxAgeMs = 600L)) {
+                    consecutiveNullFrames++
+                    if (consecutiveNullFrames == 10) {
+                        Log.e(TAG, "CARD-ML: Screen capture stale — refusing to refresh hand state")
+                    }
+                    delay(SCAN_INTERVAL_MS)
+                    continue
+                }
+                val sourceFrameTimestampMs = ScreenCaptureService.latestFrameTimestampMs()
                 val frame = ScreenCaptureService.getLatestFrame()
                 if (frame == null || frame.isRecycled) {
                     consecutiveNullFrames++
@@ -169,6 +180,12 @@ object HandDetector {
                     continue
                 }
                 if (safeCopy == null) { delay(SCAN_INTERVAL_MS); continue }
+                if (!ScreenCaptureService.hasFreshFrame(maxAgeMs = 600L) ||
+                    ScreenCaptureService.latestFrameTimestampMs() != sourceFrameTimestampMs) {
+                    safeCopy.recycle()
+                    delay(SCAN_INTERVAL_MS)
+                    continue
+                }
 
                 try {
                     // Match detection with exit tracking
@@ -240,9 +257,15 @@ object HandDetector {
 
                     val hand = merged.toMap()
 
-                    // Atomic swap of hand state and source timestamp for downstream freshness gates.
+                    // Publish the timestamp of the exact source frame classified.
+                    // Never make a frozen frame appear fresh just because inference completed.
+                    if (!ScreenCaptureService.hasFreshFrame(maxAgeMs = 600L) ||
+                        ScreenCaptureService.latestFrameTimestampMs() != sourceFrameTimestampMs) {
+                        delay(SCAN_INTERVAL_MS)
+                        continue
+                    }
                     currentHand = hand
-                    lastScanAtMs = System.currentTimeMillis()
+                    lastScanAtMs = sourceFrameTimestampMs
 
                     if (hand != lastHand) {
                         lastHand = hand.toMap()
