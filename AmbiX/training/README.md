@@ -1,7 +1,7 @@
 # AmbiX local vision model training
 
 The training workflow fine-tunes YOLO11n on Roboflow Universe dataset
-`bobwatson/clash-royale-cylln-88wu8-yeqpq`, version 1 (145 classes), then
+`clash-royale-data-collection/clash-royale-bhjq1`, version 2 (124 classes; 4,452 source images, with 12,022 images in the published model dataset), then
 exports a float32 TFLite model for local Android inference.
 
 ## One-time GitHub setup
