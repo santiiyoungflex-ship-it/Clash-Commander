@@ -791,6 +791,12 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
             return
         }
 
+        // Targeting injects its own gesture, so enforce the same fresh-hand gate.
+        if (HandDetector.handAgeMs?.let { it in 0L..650L } != true) {
+            overlay?.updateStatus("TARGET: hand scan stale — waiting for fresh card positions")
+            return
+        }
+
         // Check card is in hand
         val slotIndex = HandDetector.cardToSlot[cmd.card]
         if (slotIndex == null) {
@@ -1065,6 +1071,16 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
         if (cmd.confidence < threshold) {
             val pct = (cmd.confidence * 100).toInt()
             val msg = "Low confidence: $card? ($pct% < ${(threshold * 100).toInt()}%)"
+            overlay?.updateStatus(msg)
+            Log.w(TAG, "CMD: $msg")
+            isBusy = false
+            return
+        }
+
+        // Never inject a tap from an old or missing hand snapshot.
+        // The classifier can retain the last card-to-slot map after scanning stalls.
+        if (HandDetector.handAgeMs?.let { it in 0L..650L } != true) {
+            val msg = "Hand scan stale — waiting for fresh card positions"
             overlay?.updateStatus(msg)
             Log.w(TAG, "CMD: $msg")
             isBusy = false
