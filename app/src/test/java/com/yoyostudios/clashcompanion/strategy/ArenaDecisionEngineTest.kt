@@ -29,7 +29,7 @@ class ArenaDecisionEngineTest {
 
     @Test fun confirmedEnemyBarrelCanSelectLog() {
         val result = ArenaDecisionEngine.evaluate(
-            listOf(track()), setOf("The Log"), 100L, 5
+            listOf(track()), setOf("The Log"), 100L, 5, 1100L
         )
         assertEquals(TacticalPolicy.Action.PLAY, result.action)
         assertEquals("The Log", result.card)
@@ -38,21 +38,21 @@ class ArenaDecisionEngineTest {
 
     @Test fun unconfirmedTrackCannotTriggerAction() {
         val result = ArenaDecisionEngine.evaluate(
-            listOf(track(confirmed = false)), setOf("The Log"), 100L, 5
+            listOf(track(confirmed = false)), setOf("The Log"), 100L, 5, 1100L
         )
         assertEquals(TacticalPolicy.Action.WAIT, result.action)
     }
 
     @Test fun staleTrackCannotTriggerAction() {
         val result = ArenaDecisionEngine.evaluate(
-            listOf(track(ageMs = 701L)), setOf("The Log"), 100L, 5
+            listOf(track(ageMs = 701L)), setOf("The Log"), 100L, 5, 1701L
         )
         assertEquals(TacticalPolicy.Action.WAIT, result.action)
     }
 
     @Test fun friendlyTrackCannotTriggerEnemyDefense() {
         val result = ArenaDecisionEngine.evaluate(
-            listOf(track(side = ArenaTracker.Side.FRIENDLY)), setOf("The Log"), 100L, 5
+            listOf(track(side = ArenaTracker.Side.FRIENDLY)), setOf("The Log"), 100L, 5, 1100L
         )
         assertEquals(TacticalPolicy.Action.WAIT, result.action)
     }
