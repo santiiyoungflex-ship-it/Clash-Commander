@@ -20,6 +20,8 @@ def main():
     api_key = os.environ.get("ROBOFLOW_API_KEY")
     if not api_key:
         raise SystemExit("Missing ROBOFLOW_API_KEY secret. Add it in GitHub repository Actions secrets.")
+    if not 1 <= EPOCHS <= 120:
+        raise ValueError("AMBIX_EPOCHS must be between 1 and 120")
 
     rf = Roboflow(api_key=api_key)
     project = rf.workspace(WORKSPACE).project(PROJECT)
@@ -78,7 +80,12 @@ def main():
     (ASSETS / "labels.txt").write_text("\n".join(labels) + "\n")
 
     metrics_dict = getattr(val_metrics, "results_dict", {})
-    metrics = {str(k): float(v) for k, v in metrics_dict.items() if isinstance(v, (int, float))}
+    metrics = {}
+    for key, value in metrics_dict.items():
+        try:
+            metrics[str(key)] = float(value)
+        except (TypeError, ValueError):
+            continue
     metadata = {
         "model": "YOLO11n fine-tuned for Clash Royale arena objects",
         "dataset": f"{WORKSPACE}/{PROJECT}/{VERSION}",
