@@ -984,7 +984,7 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
         commandQueue.removeAll { now - it.timestamp > QUEUE_TIMEOUT_MS }
         if (commandQueue.isEmpty()) return
 
-        if (HandDetector.handAgeMs !in 0..650L) return
+        if (HandDetector.handAgeMs?.let { it in 0L..650L } != true) return
         val handSlots = HandDetector.cardToSlot
 
         // Remove entries where card has been absent for >5s after attempt
