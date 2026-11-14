@@ -2,15 +2,16 @@
 
 ## Selected starting dataset
 
-Use the Roboflow Universe project **Clash royale** by bobwatson as the primary troop detector starting point:
+Use the updated Roboflow Universe project **Clash Royale** by Clash Royale Data Collection as the primary arena detector:
 
-- Project: https://universe.roboflow.com/bobwatson/clash-royale-cylln-88wu8-yeqpq
-- Reported dataset size: about 1,792 images
-- Label set: 145 classes, including separate ally/enemy card and troop labels
-- Reported model metrics: mAP@50 81.4%, precision 86.4%, recall 65.8%
+- Project: https://universe.roboflow.com/clash-royale-data-collection/clash-royale-bhjq1
+- Selected dataset version: 2
+- Dataset page reports 4,452 source images and a 12,022-image dataset used by its published YOLO11n model
+- Label set: 124 classes covering troops, buildings and spells
+- Published model metrics: mAP@50 92.3%, precision 86.0%, recall 86.8%
 - Published license: CC BY 4.0
 
-This is a better starting point than the smaller public alternatives found in the initial search because it has substantially broader class coverage and reports stronger precision/mAP. Its recall is not yet high enough to authorize unattended gameplay. Treat it as a baseline, not a finished competitive model.
+This is a stronger starting point for arena recognition than the earlier 1,792-image candidate, but its published metrics belong to the dataset page model and are not AmbiX results. AmbiX must train and evaluate its own weights on the selected split.
 
 ## Supporting HUD dataset
 
@@ -21,6 +22,13 @@ Evaluate the Clash Royale Static Detection project as a separate source for stat
 - The page reports mAP@50 96.4%, precision 86.4%, recall 97.4%
 
 Its small size and limited class coverage make it unsuitable as the only model. Use it to help build a dedicated HUD detector or as additional labeled training data after checking annotation compatibility.
+
+## Implemented local inference and training pipeline
+
+- Android now has a TensorFlow Lite runtime that loads `ambix_model.tflite` and `labels.txt` from app assets, preprocesses captured frames, parses YOLO raw outputs, applies NMS and emits normalized detections.
+- The screen-capture service forwards each captured frame through the local detector when a trained model is installed. The UI exposes model readiness and detected objects.
+- A manual GitHub Actions training workflow downloads dataset version 2, fine-tunes YOLO11n, evaluates the held-out test split, exports float32 TFLite, and commits the model assets to the branch. It requires the repository Actions secret `ROBOFLOW_API_KEY`.
+- The model file is not yet present in the repository; the workflow must be run successfully before on-device inference can become ready.
 
 ## Android deployment constraints
 
@@ -42,6 +50,6 @@ Its small size and limited class coverage make it unsuitable as the only model. 
 
 - Model file is present and loaded locally, with a version/hash shown in diagnostics.
 - Per-class precision/recall is measured on fresh gameplay screenshots not used in training.
-- Card hand and elixir estimates remain stable across animation, emotes, spell effects and resolution changes.
+- Card hand identity and elixir reading are not covered by the selected arena detector; they need a separate HUD/card model and their own hold-out tests.
 - The decision engine is tested in observation mode before any live gesture execution.
 - The user can immediately pause/stop automation.
