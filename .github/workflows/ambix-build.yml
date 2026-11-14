@@ -18,6 +18,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+      - name: Run vision regression tests
+        run: gradle -p AmbiX :app:testDebugUnitTest --stacktrace
       - name: Build debug APK
         run: gradle -p AmbiX :app:assembleDebug --stacktrace
       - uses: actions/upload-artifact@v4
