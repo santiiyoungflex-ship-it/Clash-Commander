@@ -4,6 +4,11 @@ on:
     branches: [ambix-from-zero]
     paths: ['AmbiX/**','.github/workflows/ambix-build.yml']
   workflow_dispatch:
+
+concurrency:
+  group: ambix-android-build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
