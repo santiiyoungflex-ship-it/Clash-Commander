@@ -70,12 +70,21 @@ These components must be individually measured before reuse. Keep stable capture
 - [x] Rename Gradle root project to Ambi.
 - [ ] Replace hosted arena inference with a licensed, measured on-device detector.
 - [ ] Remove network LLM from the tactical hot path.
-- [x] Add an isolated deterministic tactical policy with fail-closed behavior and unit tests (not yet connected to automatic taps).\n- [x] Harden temporal association: prevent same-frame duplicate merging, reject invalid confidence/clock anomalies, expire stale tracks, and require multi-frame confirmation.\n- [x] Add a vision-to-strategy bridge that only forwards confirmed, fresh tracks into the fail-closed tactical policy (analysis-only; no automatic taps).\n- [ ] Rework full tactical tracking and decision engine.
-- [x] Add unit tests for tracker association, confirmation, stale expiry, invalid confidence, and strategy bridge safety.\n- [ ] Add recorded-match replay fixtures and broader automated tests.
+- [x] Add an isolated deterministic tactical policy with fail-closed behavior and unit tests (not yet connected to automatic taps).
+- [x] Harden temporal association: prevent same-frame duplicate merging, reject invalid confidence/clock anomalies, expire stale tracks, and require multi-frame confirmation.
+- [x] Add a vision-to-strategy bridge that only forwards confirmed, fresh tracks into the fail-closed tactical policy (analysis-only; no automatic taps).
+- [ ] Rework full tactical tracking and decision engine.
+- [x] Add unit tests for tracker association, confirmation, stale expiry, invalid confidence, and strategy bridge safety.
+- [ ] Add recorded-match replay fixtures and broader automated tests.
 - [ ] Validate coordinates and latency on Moto e32.
 - [ ] Produce and inspect a release APK and checksum.
 - [ ] Supervised gameplay validation.
 
-## Model and dataset licensing research\n- The previously selected Hugging Face YOLOv8n weights still have no explicit redistributable license; do not bundle them.\n- A Roboflow Clash Royale dataset published under CC BY 4.0 is available, but a dataset license does not itself grant rights to unrelated pretrained weights or provide a qualified on-device model. It may be a lawful training-data candidate subject to attribution and dataset terms.\n- The current Roboflow hosted model remains a remote fallback only; it does not satisfy the local, low-latency perception requirement.\n\n## Branding
+## Model and dataset licensing research
+- The previously selected Hugging Face YOLOv8n weights still have no explicit redistributable license; do not bundle them.
+- A Roboflow Clash Royale dataset published under CC BY 4.0 is available, but a dataset license does not itself grant rights to unrelated pretrained weights or provide a qualified on-device model. It may be a lawful training-data candidate subject to attribution and dataset terms.
+- The current Roboflow hosted model remains a remote fallback only; it does not satisfy the local, low-latency perception requirement.
+
+## Branding
 
 Working title: **Ambi**. Requested visual direction: a Heisenberg/Walter White-inspired portrait treatment. The final launcher artwork must be packaged as actual Android mipmap assets; a mockup or a generated image shown in chat is not an installed app icon.
