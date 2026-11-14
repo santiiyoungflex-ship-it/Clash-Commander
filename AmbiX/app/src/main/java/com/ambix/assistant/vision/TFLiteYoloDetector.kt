@@ -218,6 +218,8 @@ class TFLiteYoloDetector(context: Context) : BattleObjectDetector, Closeable {
         return when {
             name.startsWith("enemy_") || name.startsWith("enemy ") || name.startsWith("opponent ") || name.startsWith("red ") -> Team.OPPONENT
             name.startsWith("ally_") || name.startsWith("ally ") || name.startsWith("player ") || name.startsWith("blue ") -> Team.PLAYER
+            centerY < 0.48f -> Team.OPPONENT
+            centerY > 0.55f -> Team.PLAYER
             else -> Team.UNKNOWN
         }
     }
