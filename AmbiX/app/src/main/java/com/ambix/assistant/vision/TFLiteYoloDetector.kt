@@ -201,11 +201,12 @@ class TFLiteYoloDetector(context: Context) : BattleObjectDetector, Closeable {
     private fun kindFor(raw: String): ObjectKind {
         val name = raw.lowercase().removePrefix("enemy_").removePrefix("ally_").replace('_', ' ')
         return when {
-            "elixir" in name -> ObjectKind.ELIXIR
+            name == "elixir" || name == "elixir bar" -> ObjectKind.ELIXIR
             "card" in name || "hand" in name -> ObjectKind.CARD_IN_HAND
-            "tower" in name || "princess tower" in name || "king tower" in name -> ObjectKind.TOWER
+            name == "princess tower" || name == "king tower" -> ObjectKind.TOWER
             name in setOf("the log", "log", "rocket", "arrow", "arrows", "fireball", "goblin barrel", "barbarian barrel", "zap", "poison", "lightning", "earthquake", "freeze", "rage", "tornado", "clone", "mirror", "void", "giant snowball", "goblin curse", "graveyard", "royal delivery") -> ObjectKind.SPELL
             "building" in name || name in setOf("cannon", "tesla", "mortar", "x-bow", "x bow", "inferno tower", "bomb tower", "tombstone", "goblin cage", "furnace", "barbarian hut", "goblin hut", "elixir collector") -> ObjectKind.BUILDING
+            "elixir" in name -> ObjectKind.ELIXIR
             name.isNotBlank() -> ObjectKind.TROOP
             else -> ObjectKind.UNKNOWN
         }
