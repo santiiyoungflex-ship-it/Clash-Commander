@@ -41,7 +41,10 @@ object HandDetector {
         private set
 
     val handAgeMs: Long?
-        get() = lastScanAtMs.takeIf { it > 0L }?.let { (System.currentTimeMillis() - it).coerceAtLeast(0L) }
+        get() = lastScanAtMs.takeIf { it > 0L }?.let { timestamp ->
+            val now = System.currentTimeMillis()
+            if (now >= timestamp) now - timestamp else null
+        }
 
     /** Convenience: cardName → slotIndex (hand slots 0-3 only) */
     val cardToSlot: Map<String, Int>
