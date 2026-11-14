@@ -77,6 +77,11 @@ def main():
                 f"Trainer save_dir={save_dir}; candidates={candidates}"
             )
 
+    checkpoint_dir = Path("runs/ambix-checkpoints")
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(best_weights, checkpoint_dir / "arena_best.pt")
+    print(f"Persisted arena checkpoint: {checkpoint_dir / 'arena_best.pt'}")
+
     trained = YOLO(str(best_weights))
     evaluation_split = "test" if config.get("test") else "val"
     val_metrics = trained.val(data=str(data_yaml), imgsz=IMAGE_SIZE, device="cpu", split=evaluation_split)
