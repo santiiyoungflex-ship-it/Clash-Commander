@@ -1,14 +1,6 @@
 name: AmbiX train local vision model
 
 on:
-  push:
-    branches:
-      - ambix-from-zero
-    paths:
-      - "AmbiX/training/train_clash_model.py"
-      - "AmbiX/training/train_hud_model.py"
-      - "AmbiX/training/requirements.txt"
-      - ".github/workflows/ambix-train-model.yml"
   workflow_dispatch:
     inputs:
       epochs:
