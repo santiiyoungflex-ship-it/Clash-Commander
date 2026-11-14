@@ -43,7 +43,6 @@ internal fun parseElixirLabel(label: String): Int? {
     return (match.groupValues[1].ifEmpty { match.groupValues[2] }).toIntOrNull()?.takeIf { it in 0..10 }
 }
 
-
 data class FrameReport(
     val width: Int,
     val height: Int,
