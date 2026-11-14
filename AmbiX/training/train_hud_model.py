@@ -61,9 +61,19 @@ def main():
         plots=True,
     )
 
-    best_weights = OUTPUT / "clash-royale-hud-yolo11n" / "weights" / "best.pt"
-    if not best_weights.exists():
-        raise FileNotFoundError(f"HUD training did not produce best.pt: {best_weights}")
+    # Use Ultralytics' resolved output directory. Its configured runs_dir can
+    # be outside the repository (for example under site-packages/tests/tmp).
+    save_dir = Path(model.trainer.save_dir)
+    best_weights = save_dir / "weights" / "best.pt"
+    if not best_weights.is_file():
+        candidates = list(save_dir.parent.rglob("best.pt"))
+        if len(candidates) == 1:
+            best_weights = candidates[0]
+        else:
+            raise FileNotFoundError(
+                f"HUD training completed but best.pt was not found. "
+                f"Trainer save_dir={save_dir}; candidates={candidates}"
+            )
 
     checkpoint_dir = Path("runs/ambix-checkpoints")
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
