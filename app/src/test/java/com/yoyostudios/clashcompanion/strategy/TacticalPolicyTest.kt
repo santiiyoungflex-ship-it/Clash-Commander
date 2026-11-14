@@ -18,7 +18,7 @@ class TacticalPolicyTest {
         hand: Set<String> = setOf("The Log", "Princess", "Prince", "Rocket"),
         handAgeMs: Long? = 100L,
         elixir: Int? = 5
-    ) = TacticalPolicy.Snapshot(listOf(threat), hand, handAgeMs, elixir, 1000L)
+    ) = TacticalPolicy.Snapshot(listOf(threat), hand, handAgeMs, elixir)
 
     @Test fun exactFreshThreatWithLogProducesDefensivePlay() {
         val decision = TacticalPolicy.decide(snapshot())
@@ -50,7 +50,7 @@ class TacticalPolicyTest {
         assertEquals(TacticalPolicy.Action.WAIT, TacticalPolicy.decide(snapshot(handAgeMs = 651L)).action)
     }
 
-    @Test fun unknownElixirNeverProducesAction() {
+    @Test fun futureDatedHandNeverProducesAction() {\n        assertEquals(TacticalPolicy.Action.WAIT, TacticalPolicy.decide(snapshot(handAgeMs = -1L)).action)\n    }\n\n    @Test fun unknownElixirNeverProducesAction() {
         assertEquals(TacticalPolicy.Action.WAIT, TacticalPolicy.decide(snapshot(elixir = null)).action)
     }
 
