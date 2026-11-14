@@ -50,7 +50,11 @@ class TacticalPolicyTest {
         assertEquals(TacticalPolicy.Action.WAIT, TacticalPolicy.decide(snapshot(handAgeMs = 651L)).action)
     }
 
-    @Test fun futureDatedHandNeverProducesAction() {\n        assertEquals(TacticalPolicy.Action.WAIT, TacticalPolicy.decide(snapshot(handAgeMs = -1L)).action)\n    }\n\n    @Test fun unknownElixirNeverProducesAction() {
+    @Test fun futureDatedHandNeverProducesAction() {
+        assertEquals(TacticalPolicy.Action.WAIT, TacticalPolicy.decide(snapshot(handAgeMs = -1L)).action)
+    }
+
+    @Test fun unknownElixirNeverProducesAction() {
         assertEquals(TacticalPolicy.Action.WAIT, TacticalPolicy.decide(snapshot(elixir = null)).action)
     }
 
