@@ -3,7 +3,8 @@ ultralytics==8.3.203  # Keep the legacy TensorFlow/onnx2tf TFLite exporter; Lite
 PyYAML>=6.0,<7.0
 # Minimal TensorFlow Lite export stack; avoid the broad [export] extra,
 # which pulls optional CoreML dependencies incompatible with Python 3.11.
-onnx>=1.12.0
+onnx==1.17.0
+onnxscript==0.3.1
 onnxslim>=0.1.71
 onnx2tf>=1.26.3
 tensorflow>=2.16,<2.20
