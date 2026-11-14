@@ -23,6 +23,7 @@ import android.util.DisplayMetrics
 import android.view.WindowManager
 import com.ambix.assistant.vision.Detection
 import com.ambix.assistant.vision.TFLiteYoloDetector
+import com.ambix.assistant.vision.TemporalDetectionFilter
 import java.util.concurrent.atomic.AtomicReference
 
 data class FrameReport(
@@ -48,6 +49,7 @@ class ScreenCaptureService : Service() {
     private var reader: ImageReader? = null
     private var display: VirtualDisplay? = null
     private var detector: TFLiteYoloDetector? = null
+    private val temporalFilter = TemporalDetectionFilter(windowSize = 5, minHits = 3)
     private var processingThread: HandlerThread? = null
     private var processingHandler: Handler? = null
     private var lastProcessedAtMs = 0L
@@ -177,10 +179,11 @@ class ScreenCaptureService : Service() {
             }
         }
         bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
-        val detections = detector?.detect(bitmap).orEmpty()
+        val rawDetections = detector?.detect(bitmap).orEmpty()
         bitmap.recycle()
 
         val capturedAt = System.currentTimeMillis()
+        val detections = temporalFilter.update(rawDetections, capturedAt)
         VisionState.latestDetections.set(detections)
         VisionState.latest.set(FrameReport(width, height, samples, blue, purple, capturedAt, detections.size))
         val modelText = if (VisionState.modelReady.get()) "detecciones ${detections.size}"
@@ -201,6 +204,7 @@ class ScreenCaptureService : Service() {
         processingThread?.quitSafely()
         processingThread = null
         lastProcessedAtMs = 0L
+        temporalFilter.reset()
         VisionState.modelReady.set(false)
         VisionState.latestDetections.set(emptyList())
         VisionState.status.set("Captura detenida")
