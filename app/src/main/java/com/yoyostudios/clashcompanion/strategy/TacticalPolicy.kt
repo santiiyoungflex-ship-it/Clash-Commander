@@ -29,8 +29,7 @@ object TacticalPolicy {
         val threats: List<Threat>,
         val hand: Set<String>,
         val handAgeMs: Long?,
-        val elixir: Int?,
-        val nowMs: Long
+        val elixir: Int?
     )
 
     data class Decision(
@@ -56,7 +55,7 @@ object TacticalPolicy {
     )
 
     fun decide(snapshot: Snapshot): Decision {
-        if (snapshot.handAgeMs == null || snapshot.handAgeMs > MAX_HAND_AGE_MS) {
+        if (snapshot.handAgeMs == null || snapshot.handAgeMs !in 0..MAX_HAND_AGE_MS) {
             return wait("hand state missing or stale")
         }
         if (snapshot.elixir == null || snapshot.elixir !in 0..10) {
