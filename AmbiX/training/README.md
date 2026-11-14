@@ -20,7 +20,7 @@ engine. It does not execute gestures.
 1. In the repository, open **Settings → Secrets and variables → Actions**.
 2. Add a repository secret named `ROBOFLOW_API_KEY` containing a Roboflow API key.
 3. Open **Actions → AmbiX train local vision model → Run workflow**.
-4. Keep the default 80 epochs for the arena model. The HUD model uses 60 epochs.
+4. Keep the default 30 epochs for the arena model. The HUD model uses 40 epochs.
 
 The workflow trains both models on their dataset splits, evaluates each on the
 test split when available (otherwise validation), exports TFLite and labels,
