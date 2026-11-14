@@ -65,6 +65,11 @@ def main():
     if not best_weights.exists():
         raise FileNotFoundError(f"HUD training did not produce best.pt: {best_weights}")
 
+    checkpoint_dir = Path("runs/ambix-checkpoints")
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(best_weights, checkpoint_dir / "hud_best.pt")
+    print(f"Persisted HUD checkpoint: {checkpoint_dir / 'hud_best.pt'}")
+
     trained = YOLO(str(best_weights))
     evaluation_split = "test" if config.get("test") else "val"
     evaluation = trained.val(data=str(data_yaml), imgsz=IMAGE_SIZE, device="cpu", split=evaluation_split)
