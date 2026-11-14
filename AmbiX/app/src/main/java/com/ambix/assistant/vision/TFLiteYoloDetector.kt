@@ -151,8 +151,9 @@ class TFLiteYoloDetector(context: Context) : BattleObjectDetector, Closeable {
                     }
                 }
                 if (bestClass < 0) continue
-                val label = labels[bestClass]
-                val kind = kindFor(label)
+                val rawLabel = labels[bestClass]
+                val label = canonicalLabel(rawLabel)
+                val kind = kindFor(rawLabel)
                 if (bestScore < thresholdFor(kind)) continue
 
                 val left = ((cx - bw / 2f - padX) / scale / sourceWidth).coerceIn(0f, 1f)
@@ -192,8 +193,13 @@ class TFLiteYoloDetector(context: Context) : BattleObjectDetector, Closeable {
         return if (union <= 0f) 0f else intersection / union
     }
 
+    private fun canonicalLabel(raw: String): String = raw.lowercase()
+        .removePrefix("enemy_").removePrefix("ally_")
+        .replace('_', ' ').split(" ").filter { it.isNotBlank() }
+        .joinToString(" ") { it.replaceFirstChar { ch -> ch.uppercase() } }
+
     private fun kindFor(raw: String): ObjectKind {
-        val name = raw.lowercase()
+        val name = raw.lowercase().removePrefix("enemy_").removePrefix("ally_").replace('_', ' ')
         return when {
             "elixir" in name -> ObjectKind.ELIXIR
             "card" in name || "hand" in name -> ObjectKind.CARD_IN_HAND
@@ -208,8 +214,8 @@ class TFLiteYoloDetector(context: Context) : BattleObjectDetector, Closeable {
     private fun teamFor(raw: String, centerY: Float): Team {
         val name = raw.lowercase()
         return when {
-            name.startsWith("enemy ") || name.startsWith("opponent ") || name.startsWith("red ") -> Team.OPPONENT
-            name.startsWith("ally ") || name.startsWith("player ") || name.startsWith("blue ") -> Team.PLAYER
+            name.startsWith("enemy_") || name.startsWith("enemy ") || name.startsWith("opponent ") || name.startsWith("red ") -> Team.OPPONENT
+            name.startsWith("ally_") || name.startsWith("ally ") || name.startsWith("player ") || name.startsWith("blue ") -> Team.PLAYER
             else -> Team.UNKNOWN
         }
     }
