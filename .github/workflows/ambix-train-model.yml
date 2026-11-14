@@ -29,6 +29,12 @@ jobs:
           python-version: "3.11"
           cache: pip
           cache-dependency-path: AmbiX/training/requirements.txt
+      - name: Verify Roboflow API key is configured
+        run: |
+          if [ -z "$ROBOFLOW_API_KEY" ]; then
+            echo "Missing repository Actions secret ROBOFLOW_API_KEY. Add it in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
       - name: Install training dependencies
         run: python -m pip install --upgrade pip && pip install -r AmbiX/training/requirements.txt
       - name: Train YOLO11n and export float32 TFLite
