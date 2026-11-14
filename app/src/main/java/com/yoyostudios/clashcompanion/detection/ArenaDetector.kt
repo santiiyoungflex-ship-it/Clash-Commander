@@ -83,6 +83,16 @@ object ArenaDetector {
             var consecutiveErrors = 0
 
             while (isActive) {
+                // Do not relabel a cached/frozen screenshot as a fresh detector result.
+                // A stale capture clears tracks so downstream policy cannot act on it.
+                if (!ScreenCaptureService.hasFreshFrame(maxAgeMs = 600L)) {
+                    currentDetections = emptyList()
+                    currentTracks = emptyList()
+                    ArenaTracker.clear()
+                    delay(POLL_INTERVAL_MS)
+                    continue
+                }
+
                 val frame = ScreenCaptureService.getLatestFrame()
                 if (frame == null || frame.isRecycled) {
                     delay(POLL_INTERVAL_MS)
@@ -97,6 +107,14 @@ object ArenaDetector {
                     continue
                 }
                 if (safeCopy == null) { delay(POLL_INTERVAL_MS); continue }
+                if (!ScreenCaptureService.hasFreshFrame(maxAgeMs = 600L)) {
+                    safeCopy.recycle()
+                    currentDetections = emptyList()
+                    currentTracks = emptyList()
+                    ArenaTracker.clear()
+                    delay(POLL_INTERVAL_MS)
+                    continue
+                }
 
                 try {
                     val capturedWidth = safeCopy.width
