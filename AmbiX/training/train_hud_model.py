@@ -11,7 +11,7 @@ WORKSPACE = "yolotrain-c7s7v"
 PROJECT = "clash-royale-ut3g8"
 VERSION = 3
 IMAGE_SIZE = 320
-EPOCHS = int(os.getenv("AMBIX_HUD_EPOCHS", "60"))
+EPOCHS = int(os.getenv("AMBIX_HUD_EPOCHS", "40"))
 OUTPUT = Path("runs/ambix-hud")
 ASSETS = Path("AmbiX/app/src/main/assets")
 
