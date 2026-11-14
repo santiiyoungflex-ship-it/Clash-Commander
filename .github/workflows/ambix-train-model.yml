@@ -24,7 +24,7 @@ jobs:
     timeout-minutes: 360
     env:
       ROBOFLOW_API_KEY: ${{ secrets.ROBOFLOW_API_KEY }}
-      AMBIX_EPOCHS: ${{ inputs.epochs }}
+      AMBIX_EPOCHS: ${{ inputs.epochs || '30' }}
       AMBIX_HUD_EPOCHS: "40"
     steps:
       - uses: actions/checkout@v4
