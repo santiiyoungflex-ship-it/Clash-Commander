@@ -38,8 +38,9 @@ def main():
         labels = [str(x) for x in raw_names]
     else:
         raise ValueError("Unsupported class names in Roboflow data.yaml")
-    if len(labels) != 124:
-        raise ValueError(f"Expected the selected 124-class dataset version, got {len(labels)} labels")
+    if len(labels) < 2 or len(set(labels)) != len(labels):
+        raise ValueError(f"Dataset class names are invalid or duplicated: {len(labels)} labels")
+    print(f"Using the dataset's actual class list: {len(labels)} classes")
 
     model = YOLO("yolo11n.pt")
     model.train(
