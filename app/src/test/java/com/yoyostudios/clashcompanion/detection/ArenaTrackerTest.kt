@@ -54,6 +54,17 @@ class ArenaTrackerTest {
         assertTrue(tracks.isEmpty())
     }
 
+
+    @Test fun laneNormalizationUsesArenaCropWidth() {
+        ArenaTracker.clear()
+        val tracks = ArenaTracker.update(
+            listOf(detection(700)),
+            800, 100, 500, 1000L
+        )
+        assertEquals(ArenaTracker.Lane.RIGHT, tracks.single().lane)
+        assertEquals(0.875f, tracks.single().normalizedX, 0.001f)
+    }
+
     @Test fun futureTimestampDoesNotCreateNegativeAgeTrack() {
         ArenaTracker.clear()
         ArenaTracker.update(listOf(detection(200)), 1000, 100, 500, 1000L)
