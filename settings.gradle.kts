@@ -12,5 +12,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ClashCompanion"
+rootProject.name = "Ambi"
 include(":app")
