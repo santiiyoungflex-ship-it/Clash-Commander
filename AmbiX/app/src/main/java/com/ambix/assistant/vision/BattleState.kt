@@ -1,5 +1,7 @@
 package com.ambix.assistant.vision
 
+import android.graphics.Bitmap
+
 /**
  * Coordinates are normalized to the captured frame (0f..1f), so the model is
  * independent of phone resolution and screen density.
@@ -77,8 +79,10 @@ data class BattleSnapshot(
 
 /** Implemented by the local TFLite detector once its trained model is bundled. */
 interface BattleObjectDetector {
-    fun detect(snapshot: BattleSnapshot): List<Detection>
+    fun detect(frame: Bitmap): List<Detection>
     val isModelLoaded: Boolean
+    val diagnostic: String
+    fun close() {}
 }
 
 /**
