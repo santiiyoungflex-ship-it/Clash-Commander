@@ -94,7 +94,7 @@ object TacticalPolicy {
     }
 
     private fun normalize(value: String): String =
-        value.trim().lowercase().replace(Regex("\\s+"), " ")
+        value.trim().lowercase().replace("_", " ").replace("-", " ").replace(Regex("\\s+"), " ")
 
     private fun wait(reason: String) = Decision(Action.WAIT, reason = reason)
 }
