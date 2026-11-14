@@ -51,7 +51,25 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add AmbiX/app/src/main/assets/ambix_model.tflite AmbiX/app/src/main/assets/labels.txt AmbiX/app/src/main/assets/model_metadata.json
           git commit -m "Add trained AmbiX Clash Royale TFLite model"
-          git push origin HEAD:ambiX-from-zero
+          git push origin HEAD:ambix-from-zero
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Install Android SDK packages
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses && "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+      - name: Run Android vision regression tests
+        run: gradle -p AmbiX :app:testDebugUnitTest --stacktrace
+      - name: Build APK with trained model
+        run: gradle -p AmbiX :app:assembleDebug --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ambix-debug-apk-with-trained-model
+          path: AmbiX/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
           name: ambix-trained-tflite-model
