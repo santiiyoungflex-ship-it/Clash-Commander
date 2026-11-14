@@ -52,6 +52,8 @@ class MainActivity:ComponentActivity(){
 @Composable fun Screen(){
  val context=LocalContext.current
  var captureStatus by remember { mutableStateOf(VisionState.status.get()) }
+ var modelStatus by remember { mutableStateOf(VisionState.modelStatus.get()) }
+ var detectionSummary by remember { mutableStateOf("Sin detecciones") }
  val captureLauncher=rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()){ result->
   if(result.resultCode==Activity.RESULT_OK && result.data!=null){
    val service=Intent(context,ScreenCaptureService::class.java)
@@ -60,7 +62,7 @@ class MainActivity:ComponentActivity(){
    if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O) context.startForegroundService(service) else context.startService(service)
   }
  }
- LaunchedEffect(Unit){ while(true){ captureStatus=VisionState.status.get(); delay(500) } }
+ LaunchedEffect(Unit){ while(true){ captureStatus=VisionState.status.get(); modelStatus=VisionState.modelStatus.get(); detectionSummary=VisionState.latestDetections.get().take(6).joinToString(" · ") { "${it.team}: ${it.label} (${(it.confidence*100).toInt()}%)" }.ifBlank { "Sin detecciones confirmadas" }; delay(500) } }
  var seen by remember{mutableStateOf(listOf<String>())}
  var elixir by remember{mutableIntStateOf(5)}
  val choices=listOf("Hog Rider","Goblin Barrel","Giant","Mega Knight","Balloon","Lava Hound","P.E.K.K.A","Battle Ram","Royal Hogs","Firecracker","Princess","Prince","The Log","Rocket","Bandit","Guards","Rascals","Cannon","Earthquake","Musketeer","Witch","Goblin Gang","Inferno Tower","Dart Goblin")
@@ -70,7 +72,7 @@ class MainActivity:ComponentActivity(){
   LazyColumn(Modifier.fillMaxSize().padding(p).padding(16.dp),verticalArrangement=Arrangement.spacedBy(9.dp)){
    item{
     Text("AmbiX · Control automático en desarrollo",style=MaterialTheme.typography.titleMedium)
-    Text("Captura de pantalla autorizada por Android. Este módulo verifica que AmbiX recibe fotogramas; todavía no identifica cartas ni decide jugadas.")
+    Text("Captura de pantalla autorizada por Android. AmbiX ejecuta el detector TFLite local si el modelo entrenado está instalado. La lectura de cartas en mano y elixir todavía requiere otro modelo.")
     Button(onClick={context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))},modifier=Modifier.fillMaxWidth()){
      Text("Configurar permiso de control")
     }
@@ -81,6 +83,8 @@ class MainActivity:ComponentActivity(){
     },modifier=Modifier.fillMaxWidth()){Text("Autorizar y comenzar captura")}
     Button(onClick={context.startService(Intent(context,ScreenCaptureService::class.java).setAction("STOP"))},modifier=Modifier.fillMaxWidth()){Text("Detener captura")}
     Text(captureStatus)
+    Text("Modelo: $modelStatus")
+    Text("Objetos detectados: $detectionSummary")
     Text("La captura solo empieza después de aceptar el diálogo del sistema. El control automático permanece desactivado hasta validar reconocimiento y coordenadas.")
    }
    item{Text("Panel táctico de pruebas",style=MaterialTheme.typography.titleMedium);Text("Registrá cartas rivales para probar las reglas mientras se integra la visión automática.")}
