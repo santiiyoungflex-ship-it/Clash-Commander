@@ -7,9 +7,9 @@ import yaml
 from roboflow import Roboflow
 from ultralytics import YOLO
 
-WORKSPACE = "bobwatson"
-PROJECT = "clash-royale-cylln-88wu8-yeqpq"
-VERSION = 1
+WORKSPACE = "clash-royale-data-collection"
+PROJECT = "clash-royale-bhjq1"
+VERSION = 2
 IMAGE_SIZE = 320
 EPOCHS = int(os.getenv("AMBIX_EPOCHS", "80"))
 OUTPUT = Path("runs/ambix")
@@ -36,8 +36,8 @@ def main():
         labels = [str(x) for x in raw_names]
     else:
         raise ValueError("Unsupported class names in Roboflow data.yaml")
-    if len(labels) != 145:
-        raise ValueError(f"Expected the selected 145-class dataset version, got {len(labels)} labels")
+    if len(labels) != 124:
+        raise ValueError(f"Expected the selected 124-class dataset version, got {len(labels)} labels")
 
     model = YOLO("yolo11n.pt")
     model.train(
@@ -80,7 +80,7 @@ def main():
     metrics_dict = getattr(val_metrics, "results_dict", {})
     metrics = {str(k): float(v) for k, v in metrics_dict.items() if isinstance(v, (int, float))}
     metadata = {
-        "model": "YOLO11n fine-tuned for Clash Royale",
+        "model": "YOLO11n fine-tuned for Clash Royale arena objects",
         "dataset": f"{WORKSPACE}/{PROJECT}/{VERSION}",
         "dataset_license": "CC BY 4.0",
         "image_size": IMAGE_SIZE,
