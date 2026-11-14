@@ -61,7 +61,7 @@ class TemporalDetectionFilter(
                 ?.first
 
             if (match == null) {
-                tracks += Track(
+                val newTrack = Track(
                     id = nextId++,
                     label = detection.label,
                     kind = detection.kind,
@@ -71,6 +71,8 @@ class TemporalDetectionFilter(
                     hitFrames = ArrayDeque<Int>().apply { addLast(frameIndex) },
                     lastFrame = frameIndex
                 )
+                tracks += newTrack
+                usedTrackIds += newTrack.id
             } else {
                 usedTrackIds += match.id
                 match.bounds = detection.bounds
