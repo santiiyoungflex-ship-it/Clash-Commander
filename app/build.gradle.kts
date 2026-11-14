@@ -78,4 +78,6 @@ dependencies {
 
     // PyTorch Mobile Lite for on-device card classification (140KB ResNet)
     implementation("org.pytorch:pytorch_android_lite:2.1.0")
+
+    testImplementation("junit:junit:4.13.2")
 }
