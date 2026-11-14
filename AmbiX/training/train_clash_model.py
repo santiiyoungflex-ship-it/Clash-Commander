@@ -61,9 +61,21 @@ def main():
         plots=True,
     )
 
-    best_weights = OUTPUT / "clash-royale-yolo11n" / "weights" / "best.pt"
-    if not best_weights.exists():
-        raise FileNotFoundError(f"Training did not produce best.pt: {best_weights}")
+    # Ultralytics may resolve its configured runs_dir outside the repository
+    # (for example inside the installed package's tests/tmp directory).
+    # Read the authoritative save_dir from the trainer instead of assuming
+    # that the run was written under the process working directory.
+    save_dir = Path(model.trainer.save_dir)
+    best_weights = save_dir / "weights" / "best.pt"
+    if not best_weights.is_file():
+        candidates = list(save_dir.parent.rglob("best.pt"))
+        if len(candidates) == 1:
+            best_weights = candidates[0]
+        else:
+            raise FileNotFoundError(
+                f"Training completed but best.pt was not found. "
+                f"Trainer save_dir={save_dir}; candidates={candidates}"
+            )
 
     trained = YOLO(str(best_weights))
     evaluation_split = "test" if config.get("test") else "val"
