@@ -42,7 +42,9 @@ class ScreenCaptureService : Service() {
         fun hasFreshFrame(maxAgeMs: Long = 1500L): Boolean {
             val service = instance ?: return false
             val timestamp = service.lastFrameAtMs
-            return timestamp > 0L && System.currentTimeMillis() - timestamp <= maxAgeMs
+            if (timestamp <= 0L) return false
+            val age = System.currentTimeMillis() - timestamp
+            return age in 0..maxAgeMs
         }
     }
 
