@@ -54,6 +54,9 @@ class MainActivity:ComponentActivity(){
  var captureStatus by remember { mutableStateOf(VisionState.status.get()) }
  var modelStatus by remember { mutableStateOf(VisionState.modelStatus.get()) }
  var detectionSummary by remember { mutableStateOf("Sin detecciones") }
+ var handSummary by remember { mutableStateOf("Mano: sin lectura") }
+ var elixirSummary by remember { mutableStateOf("Elixir: sin lectura") }
+ var moveSummary by remember { mutableStateOf("Sin recomendación automática") }
  val captureLauncher=rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()){ result->
   if(result.resultCode==Activity.RESULT_OK && result.data!=null){
    val service=Intent(context,ScreenCaptureService::class.java)
@@ -62,7 +65,7 @@ class MainActivity:ComponentActivity(){
    if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O) context.startForegroundService(service) else context.startService(service)
   }
  }
- LaunchedEffect(Unit){ while(true){ captureStatus=VisionState.status.get(); modelStatus=VisionState.modelStatus.get(); detectionSummary=VisionState.latestDetections.get().take(6).joinToString(" · ") { "${it.team}: ${it.label} (${(it.confidence*100).toInt()}%)" }.ifBlank { "Sin detecciones confirmadas" }; delay(500) } }
+ LaunchedEffect(Unit){ while(true){ captureStatus=VisionState.status.get(); modelStatus=VisionState.modelStatus.get(); detectionSummary=VisionState.latestDetections.get().take(6).joinToString(" · ") { "${it.team}: ${it.label} (${(it.confidence*100).toInt()}%)" }.ifBlank { "Sin detecciones confirmadas" }; handSummary=VisionState.latestHand.get().joinToString(" · ") { it.name }.ifBlank { "Mano: sin lectura fiable" }; elixirSummary="Elixir: ${VisionState.latestElixir.get()?.toString() ?: "sin lectura fiable"}"; moveSummary=VisionState.latestMove.get()?.let { "${it.card} · ${it.lane} · ${it.reason}" } ?: "Sin jugada: faltan datos fiables o no hay amenaza confirmada"; delay(500) } }
  var seen by remember{mutableStateOf(listOf<String>())}
  var elixir by remember{mutableIntStateOf(5)}
  val choices=listOf("Hog Rider","Goblin Barrel","Giant","Mega Knight","Balloon","Lava Hound","P.E.K.K.A","Battle Ram","Royal Hogs","Firecracker","Princess","Prince","The Log","Rocket","Bandit","Guards","Rascals","Cannon","Earthquake","Musketeer","Witch","Goblin Gang","Inferno Tower","Dart Goblin")
@@ -85,6 +88,9 @@ class MainActivity:ComponentActivity(){
     Text(captureStatus)
     Text("Modelo: $modelStatus")
     Text("Objetos detectados: $detectionSummary")
+    Text(handSummary)
+    Text(elixirSummary)
+    Text("Consejo táctico (todavía manual): $moveSummary")
     Text("La captura solo empieza después de aceptar el diálogo del sistema. El control automático permanece desactivado hasta validar reconocimiento y coordenadas.")
    }
    item{Text("Panel táctico de pruebas",style=MaterialTheme.typography.titleMedium);Text("Registrá cartas rivales para probar las reglas mientras se integra la visión automática.")}
