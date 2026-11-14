@@ -1,5 +1,7 @@
 package com.ambix.assistant
 import android.os.Bundle
+import android.content.Intent
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -8,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
 private val signatures=mapOf(
@@ -39,6 +42,7 @@ class MainActivity:ComponentActivity(){
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable fun Screen(){
+ val context=LocalContext.current
  var seen by remember{mutableStateOf(listOf<String>())}
  var elixir by remember{mutableIntStateOf(5)}
  val choices=listOf("Hog Rider","Goblin Barrel","Giant","Mega Knight","Balloon","Lava Hound","P.E.K.K.A","Battle Ram","Royal Hogs","Firecracker","Princess","Prince","The Log","Rocket","Bandit","Guards","Rascals","Cannon","Earthquake","Musketeer","Witch","Goblin Gang","Inferno Tower","Dart Goblin")
@@ -46,7 +50,15 @@ class MainActivity:ComponentActivity(){
  val (move,why)=suggestion(seen,elixir)
  MaterialTheme { Scaffold(topBar={TopAppBar(title={Text("AmbiX · Asistente táctico")})}){p->
   LazyColumn(Modifier.fillMaxSize().padding(p).padding(16.dp),verticalArrangement=Arrangement.spacedBy(9.dp)){
-   item{Text("MVP de análisis manual",style=MaterialTheme.typography.titleMedium);Text("Registrá las cartas rivales observadas. No se puede conocer con certeza su mano ni sus cartas ocultas.")}
+   item{
+    Text("AmbiX · Control automático en desarrollo",style=MaterialTheme.typography.titleMedium)
+    Text("Primer módulo instalado: control de gestos Android. La captura visual y el motor que decide cuándo tocar todavía deben integrarse y probarse.")
+    Button(onClick={context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))},modifier=Modifier.fillMaxWidth()){
+     Text("Configurar permiso de control")
+    }
+    Text("En Accesibilidad, activá AmbiX Game Controller. No activa partidas por sí solo.")
+   }
+   item{Text("Panel táctico de pruebas",style=MaterialTheme.typography.titleMedium);Text("Registrá cartas rivales para probar las reglas mientras se integra la visión automática.")}
    item{Text("Tu elixir: $elixir");Slider(value=elixir.toFloat(),onValueChange={elixir=it.toInt()},valueRange=0f..10f,steps=9)}
    item{Text("Cartas rivales: "+(if(seen.isEmpty())"ninguna" else seen.joinToString(" · ")));Row{TextButton(onClick={if(seen.isNotEmpty())seen=seen.dropLast(1)}){Text("Deshacer")};TextButton(onClick={seen= emptyList()}){Text("Limpiar")}}}
    item{Text("Tocá la carta rival cuando aparezca:")}
