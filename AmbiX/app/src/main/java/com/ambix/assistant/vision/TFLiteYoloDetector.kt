@@ -20,7 +20,11 @@ import kotlin.math.min
  * The app intentionally remains vision-not-ready until both the trained model
  * and its exact labels.txt are packaged in assets. No guessed labels/model.
  */
-class TFLiteYoloDetector(context: Context) : BattleObjectDetector, Closeable {
+class TFLiteYoloDetector(
+    context: Context,
+    modelAsset: String = MODEL_ASSET,
+    labelsAsset: String = LABELS_ASSET
+) : BattleObjectDetector, Closeable {
     private val interpreter: Interpreter?
     private val labels: List<String>
     private val inputWidth: Int
@@ -45,8 +49,8 @@ class TFLiteYoloDetector(context: Context) : BattleObjectDetector, Closeable {
         var shape = intArrayOf()
         var message = "Modelo TFLite no instalado"
         try {
-            val modelBytes = context.assets.open(MODEL_ASSET).use { it.readBytes() }
-            names = context.assets.open(LABELS_ASSET).bufferedReader().useLines { lines ->
+            val modelBytes = context.assets.open(modelAsset).use { it.readBytes() }
+            names = context.assets.open(labelsAsset).bufferedReader().useLines { lines ->
                 lines.map { it.trim() }.filter { it.isNotEmpty() }.toList()
             }
             require(names.isNotEmpty()) { "labels.txt está vacío" }
@@ -202,8 +206,8 @@ class TFLiteYoloDetector(context: Context) : BattleObjectDetector, Closeable {
     private fun kindFor(raw: String): ObjectKind {
         val name = raw.lowercase().removePrefix("enemy_").removePrefix("ally_").replace('_', ' ')
         return when {
-            name == "elixir" || name == "elixir bar" -> ObjectKind.ELIXIR
-            "card" in name || "hand" in name -> ObjectKind.CARD_IN_HAND
+            name == "elixir" || name == "elixir bar" || "elixer" in name -> ObjectKind.ELIXIR
+            "card" in name || "hand" in name || " next" in name -> ObjectKind.CARD_IN_HAND
             name == "princess tower" || name == "king tower" -> ObjectKind.TOWER
             name in setOf("the log", "log", "rocket", "arrow", "arrows", "fireball", "goblin barrel", "barbarian barrel", "zap", "poison", "lightning", "earthquake", "freeze", "rage", "tornado", "clone", "mirror", "void", "giant snowball", "goblin curse", "graveyard", "royal delivery") -> ObjectKind.SPELL
             "building" in name || name in setOf("cannon", "tesla", "mortar", "x-bow", "x bow", "inferno tower", "bomb tower", "tombstone", "goblin cage", "furnace", "barbarian hut", "goblin hut", "elixir collector") -> ObjectKind.BUILDING
@@ -228,8 +232,8 @@ class TFLiteYoloDetector(context: Context) : BattleObjectDetector, Closeable {
         ObjectKind.TROOP, ObjectKind.BUILDING -> 0.35f
         ObjectKind.TOWER -> 0.50f
         ObjectKind.SPELL -> 0.45f
-        ObjectKind.CARD_IN_HAND -> 0.60f
-        ObjectKind.ELIXIR -> 0.70f
+        ObjectKind.CARD_IN_HAND -> 0.55f
+        ObjectKind.ELIXIR -> 0.60f
         ObjectKind.UNKNOWN -> 0.80f
     }
 
