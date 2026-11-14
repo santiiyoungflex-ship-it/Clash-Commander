@@ -20,9 +20,6 @@ object HandDetector {
 
     private const val TAG = "ClashCompanion"
     private const val SCAN_INTERVAL_MS = 200L // ~5 FPS
-    private const val MATCH_BRIGHTNESS_THRESHOLD = 80
-    /** Consecutive non-match frames needed to declare match ended (10 × 200ms = 2s) */
-    private const val MATCH_EXIT_FRAMES = 10
 
     // ── State ───────────────────────────────────────────────────────────
 
@@ -71,54 +68,6 @@ object HandDetector {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var consecutiveNullFrames = 0
 
-    // ── Match Detection ─────────────────────────────────────────────────
-
-    /**
-     * Detect if the user is in a match by checking card slot brightness.
-     * Checks slots 0 AND 2 (opposite ends) for robustness — both must be bright.
-     * In-match cards have vivid art (avg brightness 120-180).
-     * Menu/loading/results screens are dark (avg brightness 20-50).
-     */
-    private fun isInMatch(frame: Bitmap): Boolean {
-        val rois = Coordinates.getCardSlotROIs(frame.width, frame.height)
-        if (rois.size < 3) return false
-
-        // Check two slots for robustness (slot 0 and slot 2)
-        val brightCount = listOf(rois[0], rois[2]).count { roi ->
-            slotBrightness(frame, roi) > MATCH_BRIGHTNESS_THRESHOLD
-        }
-        return brightCount >= 2
-    }
-
-    /** Measure average brightness (0-255) of a card slot ROI. */
-    private fun slotBrightness(frame: Bitmap, roi: Coordinates.CardSlotROI): Long {
-        val fx = roi.x.coerceIn(0, (frame.width - 1).coerceAtLeast(0))
-        val fy = roi.y.coerceIn(0, (frame.height - 1).coerceAtLeast(0))
-        val fw = roi.w.coerceAtMost((frame.width - fx).coerceAtLeast(1))
-        val fh = roi.h.coerceAtMost((frame.height - fy).coerceAtLeast(1))
-        if (fw <= 0 || fh <= 0) return 0
-
-        val crop = try {
-            Bitmap.createBitmap(frame, fx, fy, fw, fh)
-        } catch (e: Exception) {
-            return 0
-        }
-
-        var brightnessSum = 0L
-        val w = crop.width
-        val h = crop.height
-        for (y in 0 until h) {
-            for (x in 0 until w) {
-                val pixel = crop.getPixel(x, y)
-                brightnessSum += ((pixel shr 16) and 0xFF) +
-                        ((pixel shr 8) and 0xFF) +
-                        (pixel and 0xFF)
-            }
-        }
-        crop.recycle()
-        return brightnessSum / (w * h * 3)
-    }
-
     // ── Background Scanner ──────────────────────────────────────────────
 
     /**
@@ -140,8 +89,6 @@ object HandDetector {
         }
 
         consecutiveNullFrames = 0
-        var matchDetected = false
-        var consecutiveNonMatch = 0
         Log.i(TAG, "CARD-ML: Starting background scan at ${1000 / SCAN_INTERVAL_MS} FPS")
 
         scanJob = scope.launch {
@@ -188,37 +135,9 @@ object HandDetector {
                 }
 
                 try {
-                    // Match detection with exit tracking
-                    if (!matchDetected) {
-                        // Waiting for match to start
-                        if (!isInMatch(safeCopy)) {
-                            delay(SCAN_INTERVAL_MS)
-                            continue
-                        }
-                        matchDetected = true
-                        consecutiveNonMatch = 0
-                        Log.i(TAG, "CARD-ML: Match detected! Starting card classification...")
-                    } else {
-                        // Already in match — check if we've left
-                        if (!isInMatch(safeCopy)) {
-                            consecutiveNonMatch++
-                            if (consecutiveNonMatch >= MATCH_EXIT_FRAMES) {
-                                matchDetected = false
-                                consecutiveNonMatch = 0
-                                currentHand = emptyMap()
-                                lastScanAtMs = 0L
-                                lastHand = emptyMap()
-                                slotMissCount.clear()
-                                onHandChanged?.invoke(emptyMap())
-                                Log.i(TAG, "CARD-ML: Match ended — cleared hand state")
-                            }
-                            delay(SCAN_INTERVAL_MS)
-                            continue
-                        } else {
-                            consecutiveNonMatch = 0
-                        }
-                    }
-
+                    // Always classify fresh frames. A brightness gate based on fixed
+                    // Samsung screen coordinates prevented scanning on other devices
+                    // (including Motorola) before the card classifier could run.
                     // Classify all 5 card slots via YOLOv8n-cls
                     val scanStart = System.currentTimeMillis()
                     val newScan = CardClassifier.classifyHand(safeCopy, deckCards)
