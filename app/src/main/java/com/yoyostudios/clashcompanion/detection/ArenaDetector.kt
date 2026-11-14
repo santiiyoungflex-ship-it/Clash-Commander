@@ -141,7 +141,7 @@ object ArenaDetector {
                     currentDetections = newDetections
                     currentTracks = if (roi == null) emptyList() else ArenaTracker.update(
                         newDetections,
-                        capturedWidth,
+                        roi.w,
                         roi.y,
                         roi.h
                     )
