@@ -1,11 +1,5 @@
 package com.ambix.assistant.capture
 
-internal fun parseElixirLabel(label: String): Int? {
-    val match = Regex("^(?:(10|[0-9])\\\\s+elix(?:i|e)r|elix(?:i|e)r\\\\s+(10|[0-9]))$", RegexOption.IGNORE_CASE)
-        .matchEntire(label.trim()) ?: return null
-    return (match.groupValues[1].ifEmpty { match.groupValues[2] }).toIntOrNull()?.takeIf { it in 0..10 }
-}
-
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
