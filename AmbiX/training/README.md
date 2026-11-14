@@ -13,7 +13,7 @@ exports a float32 TFLite model for local Android inference.
 
 The workflow trains on the existing train/validation split, evaluates the held-out
 test split, exports a 320×320 float32 TFLite model and labels, commits those
-assets to `ambiX-from-zero`, and thereby triggers the Android build workflow.
+assets to `ambiX-from-zero`, then runs Android regression tests and builds an APK with the trained model in the same workflow.
 
 ## Important scope and safety
 
