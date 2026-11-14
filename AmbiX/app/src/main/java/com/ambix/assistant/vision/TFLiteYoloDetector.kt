@@ -160,7 +160,7 @@ class TFLiteYoloDetector(context: Context) : BattleObjectDetector, Closeable {
                 val right = ((cx + bw / 2f - padX) / scale / sourceWidth).coerceIn(0f, 1f)
                 val bottom = ((cy + bh / 2f - padY) / scale / sourceHeight).coerceIn(0f, 1f)
                 if (right <= left || bottom <= top) continue
-                candidates += Candidate(label, kind, teamFor(label), Box(left, top, right, bottom), bestScore.coerceIn(0f, 1f))
+                val box = Box(left, top, right, bottom)\n                candidates += Candidate(label, kind, teamFor(label, box.centerY), box, bestScore.coerceIn(0f, 1f))
             }
 
             nonMaximumSuppression(candidates).map {
@@ -205,7 +205,7 @@ class TFLiteYoloDetector(context: Context) : BattleObjectDetector, Closeable {
         }
     }
 
-    private fun teamFor(raw: String): Team {
+    private fun teamFor(raw: String, centerY: Float): Team {
         val name = raw.lowercase()
         return when {
             name.startsWith("enemy ") || name.startsWith("opponent ") || name.startsWith("red ") -> Team.OPPONENT
