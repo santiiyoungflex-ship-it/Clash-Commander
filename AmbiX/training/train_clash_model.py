@@ -65,7 +65,8 @@ def main():
         raise FileNotFoundError(f"Training did not produce best.pt: {best_weights}")
 
     trained = YOLO(str(best_weights))
-    val_metrics = trained.val(data=str(data_yaml), imgsz=IMAGE_SIZE, device="cpu", split="test")
+    evaluation_split = "test" if config.get("test") else "val"
+    val_metrics = trained.val(data=str(data_yaml), imgsz=IMAGE_SIZE, device="cpu", split=evaluation_split)
     exported = trained.export(format="tflite", imgsz=IMAGE_SIZE, int8=False, nms=False)
     exported_path = Path(exported)
     candidates = [exported_path] if exported_path.is_file() else list(exported_path.rglob("*.tflite"))
@@ -96,6 +97,7 @@ def main():
         "tflite_file": "ambix_model.tflite",
         "tflite_input": "float32 [1,320,320,3]",
         "tflite_output": "YOLO raw output; no NMS",
+        "evaluation_split": evaluation_split,
         "validation_metrics": metrics,
         "warning": "Baseline only. Do not enable unattended gameplay until tested on held-out Moto e32 gameplay captures."
     }
