@@ -123,23 +123,21 @@ object CardClassifier {
         // Build deck-only index mapping: find which output indices correspond to deck cards
         // This restricts classification to ONLY the 8 deck cards instead of all 103
         val deckIndices = mutableListOf<Pair<Int, String>>() // (model output index, DeckManager name)
-        for (card in DeckManager.currentDeck) {
-            val wantKey = card.key
-            val wantKeyNorm = norm(card.key)
-            val wantNameNorm = norm(card.name)
-
+        // Use the deck passed by the active scanner, not the DeckManager singleton.
+        // This avoids an empty/stale currentDeck blocking recognition after a successful import.
+        for (deckName in deckCards) {
+            val wantNameNorm = norm(deckName)
             var matchedIdx: Int? = null
             for ((idx, key) in idx2key) {
-                val keyNorm = norm(key)
-                if (key == wantKey || keyNorm == wantKeyNorm || keyNorm == wantNameNorm) {
+                if (norm(key) == wantNameNorm) {
                     matchedIdx = idx
                     break
                 }
             }
             if (matchedIdx != null) {
-                deckIndices.add(matchedIdx to card.name)
+                deckIndices.add(matchedIdx to deckName)
             } else {
-                Log.w(TAG, "CARD-ML: Deck card not in model classes: '${card.name}' key='${card.key}'")
+                Log.w(TAG, "CARD-ML: Deck card not in model classes: '$deckName'")
             }
         }
 
