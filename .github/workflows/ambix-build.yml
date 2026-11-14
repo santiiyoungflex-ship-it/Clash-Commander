@@ -1,22 +1,31 @@
 name: AmbiX Android build
 on:
- push:
-  branches: [ambix-from-zero]
-  paths: ['AmbiX/**','.github/workflows/ambix-build.yml']
- workflow_dispatch:
+  push:
+    branches: [ambix-from-zero]
+    paths: ['AmbiX/**','.github/workflows/ambix-build.yml']
+  workflow_dispatch:
 jobs:
- build:
-  runs-on: ubuntu-latest
-  steps:
-   - uses: actions/checkout@v4
-   - uses: actions/setup-java@v4
-     with: {distribution: temurin, java-version: '17'}
-   - uses: android-actions/setup-android@v3
-   - uses: gradle/actions/setup-gradle@v4
-     with: {gradle-version: '8.9'}
-   - run: gradle -p AmbiX :app:assembleDebug
-   - uses: actions/upload-artifact@v4
-     with:
-      name: ambix-debug-apk
-      path: AmbiX/app/build/outputs/apk/debug/app-debug.apk
-      if-no-files-found: error
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: 'latest'
+      - name: Install Android platform
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build debug APK
+        run: gradle -p AmbiX :app:assembleDebug --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ambix-debug-apk
+          path: AmbiX/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
