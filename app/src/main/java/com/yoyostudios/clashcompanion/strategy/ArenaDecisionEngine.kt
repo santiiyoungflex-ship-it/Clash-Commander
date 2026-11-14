@@ -18,7 +18,7 @@ object ArenaDecisionEngine {
             .filter { it.confirmed && nowMs - it.lastSeenMs in 0..700L }
             .map {
                 TacticalPolicy.Threat(
-                    className = it.className.removePrefix("enemy_"),
+                    className = it.className.removePrefix("enemy_").removePrefix("enemy-").removePrefix("enemy "),
                     confidence = it.confidence,
                     side = when (it.side) {
                         ArenaTracker.Side.ENEMY -> TacticalPolicy.Side.ENEMY
