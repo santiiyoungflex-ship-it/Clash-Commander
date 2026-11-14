@@ -30,6 +30,8 @@ class TemporalDetectionFilter(
     private val tracks = mutableListOf<Track>()
     private var frameIndex = 0
     private var nextId = 1L
+    private var lastFrameTimestampMs = Long.MIN_VALUE
+    private var cachedOutput: List<Detection> = emptyList()
 
     init {
         require(windowSize >= 1)
@@ -39,7 +41,9 @@ class TemporalDetectionFilter(
     }
 
     @Synchronized
-    fun update(raw: List<Detection>): List<Detection> {
+    fun update(raw: List<Detection>, frameTimestampMs: Long? = null): List<Detection> {
+        if (frameTimestampMs != null && frameTimestampMs <= lastFrameTimestampMs) return cachedOutput
+        if (frameTimestampMs != null) lastFrameTimestampMs = frameTimestampMs
         frameIndex++
         val candidates = suppressDuplicates(raw)
             .filter { it.confidence >= admissionThreshold(it.kind) }
@@ -84,7 +88,7 @@ class TemporalDetectionFilter(
         }
         tracks.removeAll { frameIndex - it.lastFrame > windowSize }
 
-        return tracks.asSequence()
+        cachedOutput = tracks.asSequence()
             .filter { it.hitFrames.size >= minHits }
             .filter { it.lastFrame == frameIndex }
             .map { track ->
@@ -97,6 +101,7 @@ class TemporalDetectionFilter(
                 )
             }
             .toList()
+        return cachedOutput
     }
 
     @Synchronized
@@ -104,6 +109,8 @@ class TemporalDetectionFilter(
         tracks.clear()
         frameIndex = 0
         nextId = 1L
+        lastFrameTimestampMs = Long.MIN_VALUE
+        cachedOutput = emptyList()
     }
 
     private fun suppressDuplicates(input: List<Detection>): List<Detection> {
