@@ -4,6 +4,7 @@ import com.ambix.assistant.vision.BattleSnapshot
 import com.ambix.assistant.vision.Detection
 import com.ambix.assistant.vision.ObjectKind
 import com.ambix.assistant.vision.Team
+import com.ambix.assistant.vision.TemporalDetectionFilter
 
 data class PlannedMove(
     val card: String,
@@ -18,6 +19,7 @@ data class PlannedMove(
 data class DeckCard(val name: String, val cost: Int)
 
 object AmbiXTacticalEngine {
+    private val detectionFilter = TemporalDetectionFilter(windowSize = 5, minHits = 3)
     private val deck = listOf(
         DeckCard("Princess", 3), DeckCard("Prince", 5),
         DeckCard("Goblin Barrel", 3), DeckCard("The Log", 2),
@@ -47,7 +49,8 @@ object AmbiXTacticalEngine {
         if (snapshot.hand.size < 3) return null
         if (snapshot.hand.any { it.name.isNullOrBlank() || it.confidence < 0.90f }) return null
 
-        val threats = snapshot.detections
+        val stableDetections = detectionFilter.update(snapshot.detections, snapshot.capturedAtMs)
+        val threats = stableDetections
             .filter { it.team == Team.OPPONENT && it.kind in setOf(ObjectKind.TROOP, ObjectKind.BUILDING) && it.confidence >= 0.88f }
             .sortedByDescending { it.confidence }
 
@@ -75,6 +78,10 @@ object AmbiXTacticalEngine {
             }
         }
         return null
+    }
+
+    fun resetBattleMemory() {
+        detectionFilter.reset()
     }
 
     fun deckDefinition(): List<DeckCard> = deck
