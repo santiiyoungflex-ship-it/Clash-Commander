@@ -92,14 +92,14 @@ fun MainScreen(activity: MainActivity) {
             CrCrown(size = 52.dp)
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "CLASH COMMANDER",
+                text = "AMBI",
                 style = CrTypography.displayLarge,
                 color = CrColors.TextGold,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = "Play Clash Royale With Your Voice",
+                text = "TACTICAL AI FOR CLASH ROYALE",
                 style = CrTypography.bodyMedium,
                 color = CrColors.TextSecondary,
                 textAlign = TextAlign.Center
@@ -250,7 +250,7 @@ fun MainScreen(activity: MainActivity) {
                 .padding(horizontal = 20.dp, vertical = 12.dp)
         ) {
             CrButtonGold(
-                text = "LAUNCH COMMANDER",
+                text = "START AMBI",
                 onClick = { activity.launchOverlay() },
                 enabled = allReady,
                 icon = painterResource(id = R.drawable.ic_sword_crossed)
