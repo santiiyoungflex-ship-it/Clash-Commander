@@ -1,9 +1,0 @@
-# Example local.properties (do not commit secrets)
-#
-# Android Studio usually generates local.properties automatically (sdk.dir).
-sdk.dir=/path/to/Android/Sdk
-#
-# Optional API keys (not required for M0-M3):
-ANTHROPIC_API_KEY=
-GEMINI_API_KEY=
-ROBOFLOW_API_KEY=

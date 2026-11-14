@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">Clash Commander</string>
-    <string name="accessibility_service_description">Clash Companion uses accessibility to inject tap gestures for voice-controlled card placement in Clash Royale.</string>
-</resources>
