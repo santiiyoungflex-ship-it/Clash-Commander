@@ -28,7 +28,11 @@ Its small size and limited class coverage make it unsuitable as the only model. 
 - Android now has a TensorFlow Lite runtime that loads `ambix_model.tflite` and `labels.txt` from app assets, preprocesses captured frames, parses YOLO raw outputs, applies NMS and emits normalized detections.
 - The screen-capture service forwards each captured frame through the local detector when a trained model is installed. The UI exposes model readiness and detected objects.
 - A manual GitHub Actions training workflow downloads dataset version 2, fine-tunes YOLO11n, evaluates the held-out test split, exports float32 TFLite, and commits the model assets to the branch. It requires the repository Actions secret `ROBOFLOW_API_KEY`.
-- The model file is not yet present in the repository; the workflow must be run successfully before on-device inference can become ready.
+- The model assets are not yet present in the repository; the workflow must be run successfully before on-device inference can become ready.
+
+### HUD and hand-card baseline
+
+A second model is trained from the YoloTrain Clash Royale dataset version 3 (115 classes, 611 images, CC BY 4.0): https://universe.roboflow.com/yolotrain-c7s7v/clash-royale-ut3g8. It includes historical card-in-hand/next and elixir labels. This is a small, older dataset, so it is treated as an auxiliary baseline; the app abstains if it cannot confidently identify at least three hand cards and elixir. New current-version gameplay captures will be needed to validate and expand its coverage.
 
 ## Android deployment constraints
 
@@ -50,6 +54,6 @@ Its small size and limited class coverage make it unsuitable as the only model. 
 
 - Model file is present and loaded locally, with a version/hash shown in diagnostics.
 - Per-class precision/recall is measured on fresh gameplay screenshots not used in training.
-- Card hand identity and elixir reading are not covered by the selected arena detector; they need a separate HUD/card model and their own hold-out tests.
+- Card hand identity and elixir reading are delegated to the separate HUD model and still require their own hold-out tests on current gameplay.
 - The decision engine is tested in observation mode before any live gesture execution.
 - The user can immediately pause/stop automation.
