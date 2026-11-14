@@ -73,6 +73,9 @@ class TFLiteYoloDetector(
                 "La salida del modelo debe ser float32"
             }
             require(shape.size == 3 && shape[0] == 1) { "Salida incompatible: se esperaba tensor YOLO [1,C,N] o [1,N,C]" }
+            require(shape[1] == 4 + names.size || shape[1] == 5 + names.size || shape[2] == 4 + names.size || shape[2] == 5 + names.size) {
+                "El número de clases del tensor no coincide con labels.txt"
+            }
             message = "Modelo local cargado · ${names.size} clases · ${width}×${height}"
         } catch (error: Throwable) {
             loaded?.close()
