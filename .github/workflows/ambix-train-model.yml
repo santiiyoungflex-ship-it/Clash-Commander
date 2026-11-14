@@ -1,12 +1,6 @@
 name: AmbiX train local vision model
 
 on:
-  push:
-    branches:
-      - ambix-from-zero
-    paths:
-      - '.github/workflows/ambix-train-model.yml'
-      - 'AmbiX/training/**'
   workflow_dispatch:
     inputs:
       epochs:
