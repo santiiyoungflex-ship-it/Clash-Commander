@@ -2,6 +2,14 @@ package com.ambix.assistant
 import android.os.Bundle
 import android.content.Intent
 import android.provider.Settings
+import android.media.projection.MediaProjectionManager
+import android.app.Activity
+import android.os.Build
+import kotlinx.coroutines.delay
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.ambix.assistant.capture.ScreenCaptureService
+import com.ambix.assistant.capture.VisionState
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -43,6 +51,16 @@ class MainActivity:ComponentActivity(){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable fun Screen(){
  val context=LocalContext.current
+ var captureStatus by remember { mutableStateOf(VisionState.status.get()) }
+ val captureLauncher=rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()){ result->
+  if(result.resultCode==Activity.RESULT_OK && result.data!=null){
+   val service=Intent(context,ScreenCaptureService::class.java)
+    .putExtra(ScreenCaptureService.EXTRA_RESULT,result.resultCode)
+    .putExtra(ScreenCaptureService.EXTRA_DATA,result.data)
+   if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.O) context.startForegroundService(service) else context.startService(service)
+  }
+ }
+ LaunchedEffect(Unit){ while(true){ captureStatus=VisionState.status.get(); delay(500) } }
  var seen by remember{mutableStateOf(listOf<String>())}
  var elixir by remember{mutableIntStateOf(5)}
  val choices=listOf("Hog Rider","Goblin Barrel","Giant","Mega Knight","Balloon","Lava Hound","P.E.K.K.A","Battle Ram","Royal Hogs","Firecracker","Princess","Prince","The Log","Rocket","Bandit","Guards","Rascals","Cannon","Earthquake","Musketeer","Witch","Goblin Gang","Inferno Tower","Dart Goblin")
@@ -52,11 +70,18 @@ class MainActivity:ComponentActivity(){
   LazyColumn(Modifier.fillMaxSize().padding(p).padding(16.dp),verticalArrangement=Arrangement.spacedBy(9.dp)){
    item{
     Text("AmbiX · Control automático en desarrollo",style=MaterialTheme.typography.titleMedium)
-    Text("Primer módulo instalado: control de gestos Android. La captura visual y el motor que decide cuándo tocar todavía deben integrarse y probarse.")
+    Text("Captura de pantalla autorizada por Android. Este módulo verifica que AmbiX recibe fotogramas; todavía no identifica cartas ni decide jugadas.")
     Button(onClick={context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))},modifier=Modifier.fillMaxWidth()){
      Text("Configurar permiso de control")
     }
-    Text("En Accesibilidad, activá AmbiX Game Controller. No activa partidas por sí solo.")
+    Text("En Accesibilidad, activá AmbiX Game Controller.")
+    Button(onClick={
+     val manager=context.getSystemService(android.content.Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+     captureLauncher.launch(manager.createScreenCaptureIntent())
+    },modifier=Modifier.fillMaxWidth()){Text("Autorizar y comenzar captura")}
+    Button(onClick={context.startService(Intent(context,ScreenCaptureService::class.java).setAction("STOP"))},modifier=Modifier.fillMaxWidth()){Text("Detener captura")}
+    Text(captureStatus)
+    Text("La captura solo empieza después de aceptar el diálogo del sistema. El control automático permanece desactivado hasta validar reconocimiento y coordenadas.")
    }
    item{Text("Panel táctico de pruebas",style=MaterialTheme.typography.titleMedium);Text("Registrá cartas rivales para probar las reglas mientras se integra la visión automática.")}
    item{Text("Tu elixir: $elixir");Slider(value=elixir.toFloat(),onValueChange={elixir=it.toInt()},valueRange=0f..10f,steps=9)}
