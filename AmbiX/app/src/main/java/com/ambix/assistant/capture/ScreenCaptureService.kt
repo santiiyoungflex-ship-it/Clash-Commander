@@ -21,9 +21,14 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.util.DisplayMetrics
 import android.view.WindowManager
+import com.ambix.assistant.strategy.AmbiXTacticalEngine
+import com.ambix.assistant.strategy.PlannedMove
+import com.ambix.assistant.vision.BattleSnapshot
 import com.ambix.assistant.vision.Detection
-import com.ambix.assistant.vision.TFLiteYoloDetector
+import com.ambix.assistant.vision.HandCard
+import com.ambix.assistant.vision.ObjectKind
 import com.ambix.assistant.vision.TemporalDetectionFilter
+import com.ambix.assistant.vision.TFLiteYoloDetector
 import java.util.concurrent.atomic.AtomicReference
 
 data class FrameReport(
@@ -39,8 +44,11 @@ data class FrameReport(
 object VisionState {
     val latest = AtomicReference<FrameReport?>(null)
     val latestDetections = AtomicReference<List<Detection>>(emptyList())
+    val latestHand = AtomicReference<List<HandCard>>(emptyList())
+    val latestElixir = AtomicReference<Int?>(null)
+    val latestMove = AtomicReference<PlannedMove?>(null)
     val status = AtomicReference("Captura detenida")
-    val modelStatus = AtomicReference("Modelo TFLite no inicializado")
+    val modelStatus = AtomicReference("Modelos TFLite no inicializados")
     val modelReady = AtomicReference(false)
 }
 
@@ -48,11 +56,25 @@ class ScreenCaptureService : Service() {
     private var projection: MediaProjection? = null
     private var reader: ImageReader? = null
     private var display: VirtualDisplay? = null
-    private var detector: TFLiteYoloDetector? = null
-    private val temporalFilter = TemporalDetectionFilter(windowSize = 5, minHits = 3)
+    private var arenaDetector: TFLiteYoloDetector? = null
+    private var hudDetector: TFLiteYoloDetector? = null
     private var processingThread: HandlerThread? = null
     private var processingHandler: Handler? = null
     private var lastProcessedAtMs = 0L
+    private val arenaFilter = TemporalDetectionFilter(windowSize = 5, minHits = 3)
+    private val hudFilter = TemporalDetectionFilter(
+        windowSize = 5,
+        minHits = 3,
+        confidenceFloors = mapOf(
+            ObjectKind.TROOP to 0.65f,
+            ObjectKind.BUILDING to 0.65f,
+            ObjectKind.TOWER to 0.65f,
+            ObjectKind.SPELL to 0.65f,
+            ObjectKind.CARD_IN_HAND to 0.62f,
+            ObjectKind.ELIXIR to 0.68f,
+            ObjectKind.UNKNOWN to 0.80f
+        )
+    )
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -82,10 +104,16 @@ class ScreenCaptureService : Service() {
         } else startForeground(41, notification)
 
         try {
-            detector?.close()
-            detector = TFLiteYoloDetector(this)
-            VisionState.modelReady.set(detector?.isModelLoaded == true)
-            VisionState.modelStatus.set(detector?.diagnostic ?: "Detector no disponible")
+            arenaDetector?.close()
+            hudDetector?.close()
+            arenaDetector = TFLiteYoloDetector(this)
+            hudDetector = TFLiteYoloDetector(this, HUD_MODEL_ASSET, HUD_LABELS_ASSET)
+            val arenaReady = arenaDetector?.isModelLoaded == true
+            val hudReady = hudDetector?.isModelLoaded == true
+            VisionState.modelReady.set(arenaReady && hudReady)
+            VisionState.modelStatus.set(
+                "Arena: ${arenaDetector?.diagnostic} · HUD: ${hudDetector?.diagnostic}"
+            )
 
             val manager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
             projection = manager.getMediaProjection(result, data)
@@ -119,7 +147,7 @@ class ScreenCaptureService : Service() {
                 "AmbiX-screen", width, height, metrics.densityDpi,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, reader?.surface, null, null
             )
-            VisionState.status.set("Captura activa · ${VisionState.modelStatus.get()}")
+            VisionState.status.set("Captura activa · modelos locales: ${VisionState.modelReady.get()}")
         } catch (error: Throwable) {
             VisionState.status.set("Error de captura: ${error.javaClass.simpleName}")
             stopCapture()
@@ -130,7 +158,7 @@ class ScreenCaptureService : Service() {
 
     private fun analyze(image: Image) {
         val now = System.currentTimeMillis()
-        if (now - lastProcessedAtMs < 120L) return
+        if (now - lastProcessedAtMs < 180L) return
         lastProcessedAtMs = now
         val plane = image.planes[0]
         val buffer = plane.buffer
@@ -179,16 +207,65 @@ class ScreenCaptureService : Service() {
             }
         }
         bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
-        val rawDetections = detector?.detect(bitmap).orEmpty()
+        val rawArena = arenaDetector?.detect(bitmap).orEmpty()
+        val rawHud = hudDetector?.detect(bitmap).orEmpty()
         bitmap.recycle()
 
         val capturedAt = System.currentTimeMillis()
-        val detections = temporalFilter.update(rawDetections, capturedAt)
-        VisionState.latestDetections.set(detections)
-        VisionState.latest.set(FrameReport(width, height, samples, blue, purple, capturedAt, detections.size))
-        val modelText = if (VisionState.modelReady.get()) "detecciones ${detections.size}"
-            else "sin modelo entrenado instalado"
-        VisionState.status.set("Fotograma leído · ${width}×${height} · $modelText · azul $blue · púrpura $purple")
+        val arenaStable = arenaFilter.update(rawArena, capturedAt)
+        val hudStable = hudFilter.update(rawHud, capturedAt)
+        val allStable = arenaStable + hudStable
+
+        val hand = hudStable.asSequence()
+            .filter { it.kind == ObjectKind.CARD_IN_HAND }
+            .filter { it.label.endsWith(" In Hand", true) || it.label.endsWith(" Card", true) }
+            .sortedBy { it.bounds.centerX }
+            .take(4)
+            .mapIndexed { index, detection ->
+                val name = detection.label
+                    .removeSuffix(" In Hand").removeSuffix(" Card").trim()
+                HandCard(name, index, detection.confidence, detection.bounds)
+            }
+            .toList()
+
+        val nextCard = hudStable.firstOrNull {
+            it.kind == ObjectKind.CARD_IN_HAND && it.label.endsWith(" Next", true)
+        }?.label?.removeSuffix(" Next")?.trim()
+
+        val elixir = hudStable.asSequence()
+            .filter { it.kind == ObjectKind.ELIXIR }
+            .mapNotNull { detection ->
+                Regex("^(10|[0-9])\\s+Elixer$", RegexOption.IGNORE_CASE)
+                    .find(detection.label)?.groupValues?.get(1)?.toIntOrNull()
+            }
+            .firstOrNull()
+
+        val visionReady = arenaDetector?.isModelLoaded == true &&
+            hudDetector?.isModelLoaded == true && elixir != null && hand.size >= 3
+        val snapshot = BattleSnapshot(
+            capturedAtMs = capturedAt,
+            frameWidth = width,
+            frameHeight = height,
+            elixir = elixir,
+            hand = hand,
+            nextCard = nextCard,
+            detections = rawArena,
+            isBattleScene = rawArena.isNotEmpty(),
+            visionReady = visionReady,
+            diagnostic = "arena=${arenaStable.size}, hud=${hudStable.size}, mano=${hand.size}, elixir=${elixir ?: "?"}"
+        )
+        val plannedMove = AmbiXTacticalEngine.choose(snapshot)
+
+        VisionState.latestDetections.set(allStable)
+        VisionState.latestHand.set(hand)
+        VisionState.latestElixir.set(elixir)
+        VisionState.latestMove.set(plannedMove)
+        VisionState.latest.set(FrameReport(width, height, samples, blue, purple, capturedAt, allStable.size))
+        val modelText = if (VisionState.modelReady.get()) "detecciones estables ${allStable.size}"
+            else "faltan modelos entrenados"
+        VisionState.status.set(
+            "Fotograma leído · ${width}×${height} · $modelText · mano ${hand.size}/4 · elixir ${elixir ?: "?"} · azul $blue · púrpura $purple"
+        )
     }
 
     private fun stopCapture() {
@@ -198,15 +275,22 @@ class ScreenCaptureService : Service() {
         reader = null
         projection?.stop()
         projection = null
-        detector?.close()
-        detector = null
+        arenaDetector?.close()
+        arenaDetector = null
+        hudDetector?.close()
+        hudDetector = null
         processingHandler = null
         processingThread?.quitSafely()
         processingThread = null
         lastProcessedAtMs = 0L
-        temporalFilter.reset()
+        arenaFilter.reset()
+        hudFilter.reset()
+        AmbiXTacticalEngine.resetBattleMemory()
         VisionState.modelReady.set(false)
         VisionState.latestDetections.set(emptyList())
+        VisionState.latestHand.set(emptyList())
+        VisionState.latestElixir.set(null)
+        VisionState.latestMove.set(null)
         VisionState.status.set("Captura detenida")
     }
 
@@ -227,5 +311,7 @@ class ScreenCaptureService : Service() {
         const val EXTRA_RESULT = "capture_result"
         const val EXTRA_DATA = "capture_data"
         const val CHANNEL = "ambix_capture"
+        const val HUD_MODEL_ASSET = "ambix_hud.tflite"
+        const val HUD_LABELS_ASSET = "hud_labels.txt"
     }
 }
