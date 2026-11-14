@@ -36,6 +36,9 @@ class ScreenCaptureService : Service() {
 
         fun getLatestFrame(): Bitmap? = instance?.latestFrame?.get()
 
+        /** Wall-clock timestamp for the frame currently exposed by getLatestFrame(). */
+        fun latestFrameTimestampMs(): Long = instance?.lastFrameAtMs ?: 0L
+
         fun hasFreshFrame(maxAgeMs: Long = 1500L): Boolean {
             val service = instance ?: return false
             val timestamp = service.lastFrameAtMs
