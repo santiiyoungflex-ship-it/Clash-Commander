@@ -619,7 +619,7 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
                 // Skip if busy (another command executing) or hand not ready.
                 if (isBusy) continue
                 val hand = HandDetector.currentHand
-                if (HandDetector.handAgeMs !in 0..650L || hand.filterKeys { it < 4 }.isEmpty()) {
+                if (HandDetector.handAgeMs?.let { it in 0L..650L } != true || hand.filterKeys { it < 4 }.isEmpty()) {
                     withContext(Dispatchers.Main) {
                         val reason = when {
                             !HandDetector.isCalibrated -> "Card model unavailable"
@@ -887,7 +887,7 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
                 rule.consecutiveFrames++
                 if (rule.consecutiveFrames >= 2) {
                     // Debounce passed — check if response card is in hand
-                    if (HandDetector.handAgeMs in 0..650L && HandDetector.cardToSlot.containsKey(rule.responseCard)) {
+                    if (HandDetector.handAgeMs?.let { it in 0L..650L } == true && HandDetector.cardToSlot.containsKey(rule.responseCard)) {
                         triggeredRules.add(rule)
                     } else {
                         overlay?.updateStatus("RULE: ${rule.triggerCard} seen but ${rule.responseCard} not in hand")
