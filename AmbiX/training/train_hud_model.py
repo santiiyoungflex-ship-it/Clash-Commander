@@ -38,8 +38,9 @@ def main():
         labels = [str(x) for x in raw_names]
     else:
         raise ValueError("Unsupported HUD class names in data.yaml")
-    if len(labels) != 115:
-        raise ValueError(f"Expected 115 HUD/card classes, got {len(labels)}")
+    if len(labels) < 2 or len(set(labels)) != len(labels):
+        raise ValueError(f"HUD dataset class names are invalid or duplicated: {len(labels)} labels")
+    print(f"Using the HUD dataset's actual class list: {len(labels)} classes")
 
     model = YOLO("yolo11n.pt")
     model.train(
