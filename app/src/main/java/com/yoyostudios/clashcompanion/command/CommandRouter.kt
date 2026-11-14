@@ -591,6 +591,13 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
             overlay?.updateStatus("AUTOPILOT already active")
             return
         }
+        // Do not silently start an autopilot loop with no hand scanner.
+        overlay?.ensureHandScanning()
+        if (!HandDetector.isCalibrated) {
+            overlay?.updateStatus("AUTO: Card model unavailable — cannot read hand")
+            Log.e(TAG, "CMD: Autopilot blocked — card classifier is not ready")
+            return
+        }
         isAutopilot = true
         overlay?.updateStatus("AUTOPILOT: AI is playing!")
         overlay?.setAutopilotActive(true)
@@ -612,7 +619,17 @@ Return ONLY JSON. Always include scene_confidence (0.0-1.0) and enemy_threats (a
                 // Skip if busy (another command executing) or hand not ready.
                 if (isBusy) continue
                 val hand = HandDetector.currentHand
-                if (hand.filterKeys { it < 4 }.isEmpty()) continue
+                if (hand.filterKeys { it < 4 }.isEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        val reason = when {
+                            !HandDetector.isCalibrated -> "Card model unavailable"
+                            !HandDetector.isScanning -> "Hand scanner stopped"
+                            else -> "Detecting cards in hand..."
+                        }
+                        overlay?.updateStatus("AUTO: $reason")
+                    }
+                    continue
+                }
 
                 // Call Gemini for decision
                 try {
