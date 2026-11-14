@@ -37,8 +37,24 @@ jobs:
         run: pip install -r AmbiX/training/requirements.txt
       - name: Train YOLO11n and export float32 TFLite
         run: python AmbiX/training/train_clash_model.py
+      - name: Preserve arena checkpoint even if export fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ambix-arena-training-checkpoint
+          path: runs/ambix-checkpoints/arena_best.pt
+          if-no-files-found: warn
+          retention-days: 30
       - name: Train HUD, elixir and hand-card model
         run: python AmbiX/training/train_hud_model.py
+      - name: Preserve HUD checkpoint even if export fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ambix-hud-training-checkpoint
+          path: runs/ambix-checkpoints/hud_best.pt
+          if-no-files-found: warn
+          retention-days: 30
       - name: Verify generated model assets
         run: |
           test -s AmbiX/app/src/main/assets/ambix_model.tflite
