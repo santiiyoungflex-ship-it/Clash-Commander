@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Prepare fixed-deck card reference assets
+        run: bash AmbiX/scripts/fetch_deck_templates.sh
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
