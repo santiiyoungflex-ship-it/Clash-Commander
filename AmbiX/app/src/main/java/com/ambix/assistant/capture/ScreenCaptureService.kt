@@ -64,6 +64,7 @@ class ScreenCaptureService : Service() {
     private var display: VirtualDisplay? = null
     private var arenaDetector: TFLiteYoloDetector? = null
     private var hudDetector: TFLiteYoloDetector? = null
+    private var deckHandRecognizer: com.ambix.assistant.vision.KnownDeckHandRecognizer? = null
     private var processingThread: HandlerThread? = null
     private var processingHandler: Handler? = null
     private var lastProcessedAtMs = 0L
@@ -114,6 +115,7 @@ class ScreenCaptureService : Service() {
             hudDetector?.close()
             arenaDetector = TFLiteYoloDetector(this)
             hudDetector = TFLiteYoloDetector(this, HUD_MODEL_ASSET, HUD_LABELS_ASSET)
+            deckHandRecognizer = com.ambix.assistant.vision.KnownDeckHandRecognizer(this)
             val arenaReady = arenaDetector?.isModelLoaded == true
             val hudReady = hudDetector?.isModelLoaded == true
             VisionState.modelReady.set(arenaReady && hudReady)
@@ -215,6 +217,7 @@ class ScreenCaptureService : Service() {
         bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
         val rawArena = arenaDetector?.detect(bitmap).orEmpty()
         val rawHud = hudDetector?.detect(bitmap).orEmpty()
+        val templateHand = deckHandRecognizer?.recognize(bitmap).orEmpty()
         bitmap.recycle()
 
         val capturedAt = System.currentTimeMillis()
@@ -234,9 +237,14 @@ class ScreenCaptureService : Service() {
             .map { group -> group.maxBy { it.second.confidence }.second }
             .sortedBy { it.bounds.centerX }
             .take(4)
-        val hand = handCandidates.mapIndexed { index, detection ->
+        val modelHand = handCandidates.mapIndexed { index, detection ->
             val name = detection.label.removeSuffix(" In Hand").removeSuffix(" Card").trim()
             HandCard(name, index, detection.confidence, detection.bounds)
+        }
+        // The fixed-deck visual matcher is a low-confidence fallback for display
+        // and strategy diagnostics only; it cannot satisfy autonomous-play gates.
+        val hand = if (modelHand.size == 4) modelHand else templateHand.mapIndexed { index, match ->
+            HandCard(match.name, index, match.confidence, match.bounds)
         }
 
         val nextCard = hudStable.firstOrNull {
@@ -289,6 +297,7 @@ class ScreenCaptureService : Service() {
         arenaDetector = null
         hudDetector?.close()
         hudDetector = null
+        deckHandRecognizer = null
         processingHandler = null
         processingThread?.quitSafely()
         processingThread = null
