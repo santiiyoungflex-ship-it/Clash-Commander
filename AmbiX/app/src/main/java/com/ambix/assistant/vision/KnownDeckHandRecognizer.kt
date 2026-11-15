@@ -27,14 +27,15 @@ class KnownDeckHandRecognizer(context: Context) {
     fun recognize(frame: Bitmap): List<Match> {
         if (templates.size != names.size || frame.width < 320 || frame.height < 480) return emptyList()
         val output = mutableListOf<Match>()
-        // Four card slots across the lower HUD. Coordinates are normalized to
-        // the captured image and intentionally conservative for portrait play.
-        val centers = floatArrayOf(0.185f, 0.395f, 0.605f, 0.815f)
+        // Calibrated from a full 720x1600 Moto e32 battle capture:
+        // card faces occupy x≈0.22..0.97 and y≈0.86..0.965.
+        // Normalized coordinates preserve the same layout at other resolutions.
+        val centers = floatArrayOf(0.31f, 0.50f, 0.69f, 0.88f)
         for ((slot, center) in centers.withIndex()) {
-            val left = (center - 0.095f).coerceIn(0f, 1f)
-            val right = (center + 0.095f).coerceIn(0f, 1f)
-            val top = 0.795f
-            val bottom = 0.985f
+            val left = (center - 0.085f).coerceIn(0f, 1f)
+            val right = (center + 0.085f).coerceIn(0f, 1f)
+            val top = 0.855f
+            val bottom = 0.968f
             val crop = cropNormalized(frame, left, top, right, bottom) ?: continue
             val feature = histogram(crop)
             crop.recycle()
