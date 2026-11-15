@@ -7,6 +7,11 @@ on:
         description: GitHub Actions run ID that contains ambix-arena-training-checkpoint
         required: true
         type: string
+  push:
+    branches:
+      - ambix-from-zero
+    paths:
+      - .github/workflows/ambix-recover-checkpoint.yml
 
 permissions:
   contents: write
@@ -40,7 +45,7 @@ jobs:
           path: runs/ambix-checkpoints
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
-          run-id: ${{ inputs.source_run_id }}
+          run-id: ${{ inputs.source_run_id || '43633735245' }}
       - name: Export recovered arena checkpoint without retraining
         run: python AmbiX/training/export_clash_checkpoint.py
       - name: Preserve exported arena model
