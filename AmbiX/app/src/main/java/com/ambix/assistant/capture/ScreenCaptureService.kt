@@ -51,6 +51,7 @@ object VisionState {
     val latest = AtomicReference<FrameReport?>(null)
     val latestDetections = AtomicReference<List<Detection>>(emptyList())
     val latestHand = AtomicReference<List<HandCard>>(emptyList())
+    val latestNextCard = AtomicReference<String?>(null)
     val latestElixir = AtomicReference<Int?>(null)
     val latestMove = AtomicReference<PlannedMove?>(null)
     val status = AtomicReference("Captura detenida")
@@ -276,6 +277,7 @@ class ScreenCaptureService : Service() {
 
         VisionState.latestDetections.set(allStable)
         VisionState.latestHand.set(hand)
+        VisionState.latestNextCard.set(nextCard)
         VisionState.latestElixir.set(elixir)
         VisionState.latestMove.set(plannedMove)
         VisionState.latest.set(FrameReport(width, height, samples, blue, purple, capturedAt, allStable.size))
@@ -308,6 +310,7 @@ class ScreenCaptureService : Service() {
         VisionState.modelReady.set(false)
         VisionState.latestDetections.set(emptyList())
         VisionState.latestHand.set(emptyList())
+        VisionState.latestNextCard.set(null)
         VisionState.latestElixir.set(null)
         VisionState.latestMove.set(null)
         VisionState.status.set("Captura detenida")
