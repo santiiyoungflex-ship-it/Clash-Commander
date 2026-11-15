@@ -51,6 +51,7 @@ class MainActivity:ComponentActivity(){override fun onCreate(savedInstanceState:
  var modelStatus by remember{mutableStateOf(VisionState.modelStatus.get())}
  var detectionSummary by remember{mutableStateOf("Sin detecciones")}
  var handSummary by remember{mutableStateOf("Mano: sin lectura")}
+ var nextCardSummary by remember{mutableStateOf("Próxima carta: sin lectura")}
  var elixirSummary by remember{mutableStateOf("Elixir: sin lectura")}
  var moveSummary by remember{mutableStateOf("Sin recomendación automática")}
  var autoPlayEnabled by remember{mutableStateOf(false)}
@@ -65,6 +66,7 @@ class MainActivity:ComponentActivity(){override fun onCreate(savedInstanceState:
   captureStatus=VisionState.status.get();modelStatus=VisionState.modelStatus.get()
   detectionSummary=VisionState.latestDetections.get().take(6).joinToString(" · "){"${it.team}: ${it.label} (${(it.confidence*100).toInt()}%)"}.ifBlank{"Sin detecciones confirmadas"}
   handSummary=VisionState.latestHand.get().joinToString(" · "){it.name.orEmpty()}.ifBlank{"Mano: sin lectura fiable"}
+  nextCardSummary="Próxima carta: ${VisionState.latestNextCard.get() ?: "sin lectura fiable"}"
   elixirSummary="Elixir: ${VisionState.latestElixir.get()?.toString()?: "sin lectura fiable"}"
   moveSummary=VisionState.latestMove.get()?.let{"${it.card} · ${it.lane} · ${it.reason}"}?:"Sin jugada: faltan datos fiables o no hay amenaza confirmada"
   autoPlayStatus=AutoPlayCoordinator.status.get();delay(500)
