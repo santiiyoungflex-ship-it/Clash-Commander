@@ -1,8 +1,12 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+# Keep PyTorch CPU pinned: pip otherwise replaces it with the newest CUDA build
+# when resolving Ultralytics' broad torch>=1.8 dependency.
+torch==2.5.1+cpu
+torchvision==0.20.1+cpu
 roboflow>=1.1.50,<2.0
-ultralytics==8.3.203  # Keep the legacy TensorFlow/onnx2tf TFLite exporter; LiteRT 8.4.83+ has a conflicting TorchAO stack here.
+ultralytics==8.3.203
 PyYAML>=6.0,<7.0
-# Minimal TensorFlow Lite export stack; avoid the broad [export] extra,
-# which pulls optional CoreML dependencies incompatible with Python 3.11.
+# Legacy TensorFlow Lite export stack for Ultralytics 8.3.203.
 onnx==1.17.0
 onnxscript==0.3.1
 onnxslim>=0.1.71
