@@ -36,8 +36,11 @@ jobs:
       - name: Install pinned CPU PyTorch and export dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cpu
           pip install -r AmbiX/training/requirements.txt
+          # Re-pin PyTorch AFTER Ultralytics and export dependencies so pip cannot
+          # replace the known-compatible CPU build during dependency resolution.
+          pip install --force-reinstall --no-deps torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cpu
+          python -c "import torch, torchvision, onnxscript; print('Pinned export stack:', torch.__version__, torchvision.__version__, onnxscript.__version__); assert torch.__version__.startswith('2.5.1')";
       - name: Download arena checkpoint from completed training run
         uses: actions/download-artifact@v4
         with:
