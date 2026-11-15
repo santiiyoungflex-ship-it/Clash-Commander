@@ -1,0 +1,21 @@
+{
+  "model": "YOLO11n HUD and hand-card baseline",
+  "dataset": "yolotrain-c7s7v/clash-royale-ut3g8/3",
+  "dataset_license": "CC BY 4.0",
+  "dataset_images": 611,
+  "image_size": 320,
+  "epochs_requested": 40,
+  "labels_count": 77,
+  "tflite_file": "ambix_hud.tflite",
+  "tflite_input": "float32 [1,320,320,3]",
+  "tflite_output": "YOLO raw output; no NMS",
+  "evaluation_split": "test",
+  "evaluation_metrics": {
+    "metrics/precision(B)": 0.6275718808744382,
+    "metrics/recall(B)": 0.2297704942748272,
+    "metrics/mAP50(B)": 0.3276167743587703,
+    "metrics/mAP50-95(B)": 0.2331557256125983,
+    "fitness": 0.2331557256125983
+  },
+  "warning": "Small and older dataset. Hand/elixir output must be checked on fresh current-game captures; do not automate from it without validation."
+}

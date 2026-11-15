@@ -1,0 +1,13 @@
+{
+  "model": "YOLO11n fine-tuned for Clash Royale arena objects",
+  "checkpoint": "runs/ambix-checkpoints/arena_best.pt",
+  "dataset": "clash-royale-data-collection/clash-royale-bhjq1/2",
+  "dataset_license": "CC BY 4.0",
+  "image_size": 320,
+  "labels_count": 107,
+  "tflite_file": "ambix_model.tflite",
+  "tflite_input": "float32 [1,320,320,3]",
+  "tflite_output": "YOLO raw output; no NMS",
+  "validation_metrics": null,
+  "warning": "Recovered checkpoint export only. No new training or evaluation was performed in this workflow. Validate on held-out current-game screenshots before enabling automation."
+}\n
