@@ -88,6 +88,8 @@ jobs:
           git add AmbiX/app/src/main/assets/ambix_model.tflite AmbiX/app/src/main/assets/labels.txt AmbiX/app/src/main/assets/model_metadata.json AmbiX/app/src/main/assets/ambix_hud.tflite AmbiX/app/src/main/assets/hud_labels.txt AmbiX/app/src/main/assets/hud_model_metadata.json
           git commit -m "Add trained AmbiX Clash Royale TFLite model"
           git push origin HEAD:ambix-from-zero
+      - name: Prepare fixed-deck card reference assets
+        run: bash AmbiX/scripts/fetch_deck_templates.sh
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
