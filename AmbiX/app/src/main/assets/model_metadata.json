@@ -1,13 +1,20 @@
 {
   "model": "YOLO11n fine-tuned for Clash Royale arena objects",
-  "checkpoint": "runs/ambix-checkpoints/arena_best.pt",
   "dataset": "clash-royale-data-collection/clash-royale-bhjq1/2",
   "dataset_license": "CC BY 4.0",
   "image_size": 320,
+  "epochs_requested": 30,
   "labels_count": 107,
   "tflite_file": "ambix_model.tflite",
   "tflite_input": "float32 [1,320,320,3]",
   "tflite_output": "YOLO raw output; no NMS",
-  "validation_metrics": null,
-  "warning": "Recovered checkpoint export only. No new training or evaluation was performed in this workflow. Validate on held-out current-game screenshots before enabling automation."
-}\n
+  "evaluation_split": "test",
+  "validation_metrics": {
+    "metrics/precision(B)": 0.6755621006802346,
+    "metrics/recall(B)": 0.3927510292081452,
+    "metrics/mAP50(B)": 0.43011101498935445,
+    "metrics/mAP50-95(B)": 0.2687110501573702,
+    "fitness": 0.2687110501573702
+  },
+  "warning": "Baseline only. Do not enable unattended gameplay until tested on held-out Moto e32 gameplay captures."
+}

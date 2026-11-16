@@ -1,1 +1,107 @@
-Archer Queen\nArchers\nArrows\nBaby Dragon\nBalloon\nBandit\nBarbarians\nBats\nBattle Healer\nBattle Ram\nBerserker\nBomb Tower\nBomber\nBoss Bandit\nBowler\nCannon\nCannon Cart\nCursed Hog\nDark Prince\nDart Goblin\nElectro Dragon\nElectro Giant\nElectro Spirit\nElectro Wizard\nElite Barbarians\nElixir Collector\nElixir Golem\nExecutioner\nFire Spirit\nFireball\nFirecracker\nFisherman\nFlying Machine\nFurnace\nGiant\nGiant Skeleton\nGiant Snowball\nGoblin Barrel\nGoblin Cage\nGoblin Demolisher\nGoblin Drill\nGoblin Giant\nGoblin Hut\nGoblin Machine\nGoblins\nGoblinstein\nGolden Knight\nGolem\nGraveyard\nGuards\nHeal Spirit\nHog Rider\nHunter\nIce Golem\nIce Spirit\nIce Wizard\nInferno Dragon\nInferno Tower\nKnight\nLava Hound\nLittle Prince\nLumberjack\nMagic Archer\nMega Knight\nMega Minion\nMighty Miner\nMiner\nMini P.E.K.K.A\nMinions\nMonk\nMortar\nMother Witch\nMusketeer\nNight Witch\nP.E.K.K.A\nPhoenix\nPoison\nPrince\nPrincess\nRage\nRam Rider\nRascals\nRocket\nRoyal Ghost\nRoyal Giant\nRoyal Hog\nRoyal Hogs\nRoyal Recruits\nSkeleton\nSkeleton Barrel\nSkeleton Dragons\nSkeleton King\nSkeletons\nSparky\nSpear Goblins\nSpirit Empress\nSuspicious Bush\nTesla\nThe Log\nTombstone\nTornado\nValkyrie\nWall Breakers\nWitch\nWizard\nX-Bow\nZappies\n
+Archer Queen
+Archers
+Arrows
+Baby Dragon
+Balloon
+Bandit
+Barbarians
+Bats
+Battle Healer
+Battle Ram
+Berserker
+Bomb Tower
+Bomber
+Boss Bandit
+Bowler
+Cannon
+Cannon Cart
+Cursed Hog
+Dark Prince
+Dart Goblin
+Electro Dragon
+Electro Giant
+Electro Spirit
+Electro Wizard
+Elite Barbarians
+Elixir Collector
+Elixir Golem
+Executioner
+Fire Spirit
+Fireball
+Firecracker
+Fisherman
+Flying Machine
+Furnace
+Giant
+Giant Skeleton
+Giant Snowball
+Goblin Barrel
+Goblin Cage
+Goblin Demolisher
+Goblin Drill
+Goblin Giant
+Goblin Hut
+Goblin Machine
+Goblins
+Goblinstein
+Golden Knight
+Golem
+Graveyard
+Guards
+Heal Spirit
+Hog Rider
+Hunter
+Ice Golem
+Ice Spirit
+Ice Wizard
+Inferno Dragon
+Inferno Tower
+Knight
+Lava Hound
+Little Prince
+Lumberjack
+Magic Archer
+Mega Knight
+Mega Minion
+Mighty Miner
+Miner
+Mini P.E.K.K.A
+Minions
+Monk
+Mortar
+Mother Witch
+Musketeer
+Night Witch
+P.E.K.K.A
+Phoenix
+Poison
+Prince
+Princess
+Rage
+Ram Rider
+Rascals
+Rocket
+Royal Ghost
+Royal Giant
+Royal Hog
+Royal Hogs
+Royal Recruits
+Skeleton
+Skeleton Barrel
+Skeleton Dragons
+Skeleton King
+Skeletons
+Sparky
+Spear Goblins
+Spirit Empress
+Suspicious Bush
+Tesla
+The Log
+Tombstone
+Tornado
+Valkyrie
+Wall Breakers
+Witch
+Wizard
+X-Bow
+Zappies

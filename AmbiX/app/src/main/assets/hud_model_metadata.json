@@ -11,11 +11,11 @@
   "tflite_output": "YOLO raw output; no NMS",
   "evaluation_split": "test",
   "evaluation_metrics": {
-    "metrics/precision(B)": 0.6275718808744382,
-    "metrics/recall(B)": 0.2297704942748272,
-    "metrics/mAP50(B)": 0.3276167743587703,
-    "metrics/mAP50-95(B)": 0.2331557256125983,
-    "fitness": 0.2331557256125983
+    "metrics/precision(B)": 0.5535931324595228,
+    "metrics/recall(B)": 0.2591842366674549,
+    "metrics/mAP50(B)": 0.30984991310871496,
+    "metrics/mAP50-95(B)": 0.21846265351491975,
+    "fitness": 0.21846265351491975
   },
   "warning": "Small and older dataset. Hand/elixir output must be checked on fresh current-game captures; do not automate from it without validation."
 }
